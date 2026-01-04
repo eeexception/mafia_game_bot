@@ -148,6 +148,27 @@ flutter analyze
 *   **Secrecy Integrity**: Role information is stored only on the Host. The Client PWA only receives its specific role. Detailed logs are encrypted/hidden until the game concludes.
 *   **Networking**: Both Host and Client must be on the **same Wi-Fi network**. The Host uses the local IP (e.g., `192.168.1.50`) for the QR code.
 
+## 🎨 Theme Management
+
+Themes allow you to customize role names, audio announcements, and background music.
+
+### Theme Structure
+Themes are located in the `themes/` directory. A theme consists of:
+1.  `config.yaml`: Configuration file defining role names and audio mappings.
+2.  `assets/`: Directory containing audio files (`.mp3`).
+
+### Creating a New Theme
+1.  Duplicate the `themes/default/` folder.
+2.  Rename the folder (e.g., `themes/cyberpunk/`).
+3.  Update `config.yaml` with the new theme ID, name, and audio mappings.
+4.  Add your custom audio files to `themes/cyberpunk/assets/`.
+5.  Register the new theme path in `pubspec.yaml` under `assets`:
+    ```yaml
+    assets:
+      - themes/cyberpunk/
+      - themes/cyberpunk/assets/
+    ```
+
 ---
 **Status**: Production Ready  
 **Version**: 1.0.0  

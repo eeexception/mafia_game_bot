@@ -49,18 +49,26 @@ class AudioController {
   
   /// Play event sound (random variant from theme)
   Future<void> playEvent(String eventKey) async {
+    await playCompositeEvent([eventKey]);
+  }
+
+  /// Play multiple events in sequence (e.g. "Player killed" + "Player 5")
+  Future<void> playCompositeEvent(List<String> eventKeys) async {
     if (_currentTheme == null) return;
     
-    final variants = _currentTheme!.eventAudio[eventKey];
-    if (variants == null || variants.isEmpty) return;
+    final tracks = <String>[];
+    for (final key in eventKeys) {
+      final variants = _currentTheme!.eventAudio[key];
+      if (variants != null && variants.isNotEmpty) {
+        tracks.add(variants[DateTime.now().millisecond % variants.length]);
+      }
+    }
     
-    final track = variants[DateTime.now().millisecond % variants.length];
-    
+    if (tracks.isEmpty) return;
+
     await _audioManager.setBackgroundVolume(_currentTheme!.backgroundDuckVolume);
-    await _audioManager.playAnnouncement(track);
-    // Ideally wait for announcement to finish before restoring, 
-    // but AudioManager doesn't expose completion yet.
-    // Simple workaround: restore after some time or on next event.
+    await _audioManager.playSequence(tracks);
+    // Restoration handled by listener
   }
   
   /// Restore background volume

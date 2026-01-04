@@ -27,6 +27,14 @@ class AudioManager {
   Future<void> playAnnouncement(String assetPath) async {
     await _announcementPlayer.play(AssetSource(assetPath));
   }
+
+  /// Play sequence of announcements
+  Future<void> playSequence(List<String> assetPaths) async {
+    for (final path in assetPaths) {
+      await _announcementPlayer.play(AssetSource(path));
+      await _announcementPlayer.onPlayerComplete.first;
+    }
+  }
   
   /// Set background volume (0.0 - 1.0)
   Future<void> setBackgroundVolume(double volume) async {

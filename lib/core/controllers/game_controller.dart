@@ -145,6 +145,10 @@ class GameController {
     _state = _state.copyWith(players: players);
 
     gameLogger.logDetailed('Advancing phase from ${_state.phase} to ...');
+    
+    // Trigger sleep audio for previous phase
+    _triggerSleepAudio(_state.phase);
+
     switch (_state.phase) {
       case GamePhase.lobby:
       case GamePhase.setup:
@@ -164,7 +168,7 @@ class GameController {
         break;
       case GamePhase.nightCommissar:
         _state = _state.copyWith(phase: GamePhase.morning);
-        resolveNightActions();
+        await resolveNightActions(); // await for audio
         break;
       case GamePhase.morning:
         _state = _state.copyWith(phase: GamePhase.dayDiscussion);
@@ -209,7 +213,11 @@ class GameController {
     switch (_state.phase) {
       case GamePhase.nightMafia:
         audioController.playEvent('night_start');
-        audioController.playEvent('mafia_wake');
+        if (_state.currentNightNumber == 1) {
+          audioController.playCompositeEvent(['mafia_meet', 'mafia_wake']);
+        } else {
+          audioController.playEvent('mafia_wake');
+        }
         break;
       case GamePhase.nightProstitute:
         audioController.playEvent('prostitute_wake');
@@ -226,13 +234,46 @@ class GameController {
       case GamePhase.morning:
         audioController.playEvent('day_start');
         break;
+      case GamePhase.dayDiscussion:
+        audioController.playEvent('discussion_start');
+        break;
       case GamePhase.dayVoting:
-        audioController.playEvent('vote_start');
+        audioController.playEvent('voting_start');
+        break;
+      case GamePhase.dayDefense:
+        audioController.playEvent('defense_start');
+        break;
+      case GamePhase.dayVerdict:
+        audioController.playEvent('verdict_start');
         break;
       default:
-        break;
+         break;
     }
   }
+
+  void _triggerSleepAudio(GamePhase phase) {
+      switch (phase) {
+        case GamePhase.nightMafia:
+            audioController.playEvent('mafia_sleep');
+            break;
+        case GamePhase.nightProstitute:
+            audioController.playEvent('prostitute_sleep');
+            break;
+        case GamePhase.nightManiac:
+            audioController.playEvent('maniac_sleep');
+            break;
+        case GamePhase.nightDoctor:
+            audioController.playEvent('doctor_sleep');
+            break;
+        case GamePhase.nightCommissar:
+            audioController.playEvent('commissar_sleep');
+            break;
+        default:
+            break; // No sleep audio for other phases
+      }
+  }
+
+
 
   List<String> _getTiedPlayers() {
     final votes = _state.currentVotes;
@@ -260,6 +301,18 @@ class GameController {
     final winResult = winDetector.checkWinCondition(_state.players);
     if (winResult != null) {
       _state = _state.copyWith(phase: GamePhase.gameOver);
+      
+      switch (winResult.winner) {
+        case Faction.town:
+          audioController.playEvent('town_win');
+          break;
+        case Faction.mafia:
+          audioController.playEvent('mafia_win');
+          break;
+        case Faction.neutral:
+          audioController.playEvent('maniac_win');
+          break;
+      }
       
       _recordStats(winResult.winner);
       
@@ -330,7 +383,7 @@ class GameController {
     });
   }
 
-  void resolveNightActions() {
+  Future<void> resolveNightActions() async {
     final actions = _state.pendingActions;
     gameLogger.logDetailed('Resolving night actions: ${actions.length} received');
     final players = List<Player>.from(_state.players);
@@ -370,16 +423,31 @@ class GameController {
             killedIds.add(consensusTargetId);
           } else {
             gameLogger.logPublic('Mafia could not reach a consensus tonight.');
+            audioController.playEvent('mafia_miss');
           }
         } else {
+          // If NOT blind mode, any kill works, but if there are multiple, usually first one counts or we might need consensus too 
+          // depending on exact rules. Assuming "first valid action" applies here as per existing logic.
+          // BUT if mafia actions list is empty but mafia are alive, then they missed.
+          bool anyAction = false;
           for (var action in mafiaActions) {
             if (!blockedIds.contains(action.performerId) && action.targetId != null) {
               killedIds.add(action.targetId!);
+              anyAction = true;
               break;
             }
           }
+          if (!anyAction && livingMafia.isNotEmpty) {
+             audioController.playEvent('mafia_miss');
+          }
         }
       }
+    } else {
+       // Mafia actions list empty, but check if mafia are alive
+       final livingMafia = players.where((p) => p.isAlive && p.role.type == RoleType.mafia).toList();
+       if (livingMafia.isNotEmpty) {
+           audioController.playEvent('mafia_miss');
+       }
     }
 
     for (var action in actions.where((a) => a.type == 'maniac_kill')) {
@@ -394,6 +462,51 @@ class GameController {
       }
     }
 
+    // Prostitute Announcements
+    for (var action in actions.where((a) => a.type == 'prostitute_block')) {
+      if (action.targetId != null) {
+        final target = players.firstWhere((p) => p.id == action.targetId);
+        // Announce generic block if active role
+        if (target.role.type != RoleType.civilian) {
+             audioController.playEvent('prostitute_block_active');
+        }
+        
+        // Announce specific visit
+        switch (target.role.type) {
+            case RoleType.civilian:
+                 audioController.playEvent('prostitute_visit_civilian');
+                 break;
+            case RoleType.mafia:
+                 audioController.playEvent('prostitute_visit_mafia');
+                 break;
+            case RoleType.maniac:
+                 audioController.playEvent('prostitute_visit_maniac');
+                 break;
+             case RoleType.commissar:
+                 audioController.playEvent('prostitute_visit_commissar');
+                 break;
+             case RoleType.doctor:
+                 audioController.playEvent('prostitute_visit_doctor');
+                 break;
+             default: 
+                 break;
+        }
+      }
+    }
+
+    // Doctor Announcements
+    for (var healId in healedIds) {
+        final target = players.firstWhere((p) => p.id == healId);
+        if (killedIds.contains(healId)) {
+            // Saved!
+            audioController.playCompositeEvent(['doctor_heal_success', 'player_${target.number}']);
+            gameLogger.logPublic("Doctor saved ${target.nickname}!");
+        } else {
+            // Wasted
+            audioController.playEvent('doctor_heal_fail');
+        }
+    }
+
     final actualKilledIds = killedIds.where((id) => !healedIds.contains(id)).toSet();
     final eventLogs = <String>[];
 
@@ -404,6 +517,28 @@ class GameController {
         eventLogs.add(log);
         gameLogger.logPublic(log);
         gameLogger.logDetailed('Player ${players[i].nickname} died.');
+        
+        // Determine killer for specific audio if possible
+        // Ideally we check if this specific ID was in maniacKills vs mafiaKills
+        // For MVP, generic "player_killed" is fine, or we can improve later.
+        // User requested "Maniac killed Player 5".
+        bool killedByManiac = false; // We need to track this earlier to support it fully.
+        
+        // RE-CHECKING KILLS SOURCE LOCALLY FOR AUDIO
+        // (This is a bit redundant but safe for now without refactoring entire method variables)
+        final maniacActions = actions.where((a) => a.type == 'maniac_kill');
+        for (var act in maniacActions) {
+             if (!blockedIds.contains(act.performerId) && act.targetId == players[i].id) {
+                 killedByManiac = true; 
+                 break;
+             }
+        }
+
+        if (killedByManiac) {
+            audioController.playCompositeEvent(['maniac_kill', 'player_${players[i].number}']);
+        } else {
+            audioController.playCompositeEvent(['player_killed', 'player_${players[i].number}']);
+        }
       }
     }
 
@@ -418,12 +553,42 @@ class GameController {
       if (!blockedIds.contains(action.performerId) && action.targetId != null) {
         final target = players.firstWhere((p) => p.id == action.targetId);
         final isMafia = target.role.faction == Faction.mafia;
+        
+        // Announce investigation
+        audioController.playCompositeEvent(['commissar_visit', 'player_${target.number}']);
+        gameLogger.logPublic("Commissar investigated Player ${target.number}");
+        
         websocketController.sendToClient(action.performerId, {
           'type': 'check_result',
           'target_id': action.targetId,
           'is_mafia': isMafia,
         });
       }
+    }
+
+    // Check for missed actions (Alive but no action)
+    final livingCommissar = players.any((p) => p.isAlive && p.role.type == RoleType.commissar);
+    if (livingCommissar) {
+        final hasAction = actions.any((a) => a.type == 'commissar_check');
+        if (!hasAction) {
+            audioController.playEvent('commissar_miss');
+        }
+    }
+
+    final livingDoctor = players.any((p) => p.isAlive && p.role.type == RoleType.doctor);
+    if (livingDoctor) {
+        final hasAction = actions.any((a) => a.type == 'doctor_heal');
+        if (!hasAction) {
+             audioController.playEvent('doctor_miss');
+        }
+    }
+
+    final livingProstitute = players.any((p) => p.isAlive && p.role.type == RoleType.prostitute);
+    if (livingProstitute) {
+        final hasAction = actions.any((a) => a.type == 'prostitute_block');
+        if (!hasAction) {
+             audioController.playEvent('prostitute_miss');
+        }
     }
 
     _state = _state.copyWith(
@@ -470,6 +635,8 @@ class GameController {
             final log = "${players[index].nickname} was executed by the town.";
             gameLogger.logPublic(log);
             gameLogger.logDetailed('Execution: ${players[index].nickname} dead.');
+            
+            audioController.playCompositeEvent(['execution', 'player_executed', 'player_${players[index].number}']);
             _state = _state.copyWith(
                 players: players,
                 publicEventLog: [..._state.publicEventLog, log],
@@ -480,6 +647,9 @@ class GameController {
         const log = "The town reached a tie. Nobody was executed.";
         gameLogger.logPublic(log);
         gameLogger.logDetailed('No execution (Tie).');
+        
+        audioController.playEvent('vote_tie');
+        
         _state = _state.copyWith(
             publicEventLog: [..._state.publicEventLog, log],
             currentVotes: {},

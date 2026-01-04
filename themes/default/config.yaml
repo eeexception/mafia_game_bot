@@ -34,29 +34,212 @@ audio:
       - file: "themes/default/assets/mafia_wake.mp3"
         text: "Mafia, wake up and choose your target."
     
+    mafia_meet:
+      - file: "themes/default/assets/mafia_meet.mp3"
+        text: "Mafia, wake up. I see you. Get to know each other."
+    
     prostitute_wake:
       - file: "themes/default/assets/prostitute_wake.mp3"
-        text: "Prostitute, wake up."
+        text: "Prostitute, wake up. Choose who to visit."
         
     maniac_wake:
       - file: "themes/default/assets/maniac_wake.mp3"
-        text: "Maniac, wake up."
+        text: "Maniac, wake up. Choose who to kill."
 
     doctor_wake:
       - file: "themes/default/assets/doctor_wake.mp3"
-        text: "Doctor, wake up."
+        text: "Doctor, wake up. Choose who to heal."
 
     commissar_wake:
       - file: "themes/default/assets/commissar_wake.mp3"
-        text: "Commissar, wake up."
+        text: "Commissar, wake up. Choose who to check."
+    
+    mafia_sleep:
+      - file: "themes/default/assets/mafia_sleep.mp3"
+        text: "Mafia, go to sleep."
+        
+    prostitute_sleep:
+      - file: "themes/default/assets/prostitute_sleep.mp3"
+        text: "Prostitute, go to sleep."
+        
+    maniac_sleep:
+      - file: "themes/default/assets/maniac_sleep.mp3"
+        text: "Maniac, go to sleep."
+        
+    doctor_sleep:
+      - file: "themes/default/assets/doctor_sleep.mp3"
+        text: "Doctor, go to sleep."
+        
+    commissar_sleep:
+      - file: "themes/default/assets/commissar_sleep.mp3"
+        text: "Commissar, go to sleep."
 
     day_start:
       - file: "themes/default/assets/day_start.mp3"
         text: "Morning has come. Let's see what happened tonight."
-    
+        
+    discussion_start:
+      - file: "themes/default/assets/discussion_start.mp3"
+        text: "The town wakes up. Discussion begins."
+        
+    voting_start:
+      - file: "themes/default/assets/voting_start.mp3"
+        text: "It is time to vote. Choose your suspect."
+        
+    defense_start:
+      - file: "themes/default/assets/defense_start.mp3"
+        text: "You have one minute for your final speech."
+        
+    verdict_start:
+      - file: "themes/default/assets/verdict_start.mp3"
+        text: "Citizens, make your choice. Pardon or Execute?"
+
     execution:
       - file: "themes/default/assets/execution.mp3"
         text: "The verdict has been carried out."
+        
+    # Night Result Announcements
+    prostitute_block_active:
+      - file: "themes/default/assets/prostitute_block_active.mp3"
+        text: "The Prostitute blocked an active role tonight."
+        
+    prostitute_visit_civilian:
+      - file: "themes/default/assets/prostitute_visit_civilian.mp3"
+        text: "The Prostitute slept with a peaceful civilian."
+        
+    prostitute_visit_mafia:
+      - file: "themes/default/assets/prostitute_visit_mafia.mp3"
+        text: "The Prostitute slept with the Mafia."
+        
+    prostitute_visit_maniac:
+      - file: "themes/default/assets/prostitute_visit_maniac.mp3"
+        text: "The Prostitute slept with the Maniac."
+    
+    prostitute_visit_commissar:
+      - file: "themes/default/assets/prostitute_visit_commissar.mp3"
+        text: "The Prostitute slept with the Commissar."
+        
+    prostitute_visit_doctor:
+      - file: "themes/default/assets/prostitute_visit_doctor.mp3"
+        text: "The Prostitute slept with the Doctor."
+        
+    maniac_kill:
+      - file: "themes/default/assets/maniac_kill.mp3"
+        text: "The Maniac brutally killed"
+        
+    doctor_heal_success:
+      - file: "themes/default/assets/doctor_heal_success.mp3"
+        text: "The Doctor saved from death"
+        
+    doctor_heal_fail:
+      - file: "themes/default/assets/doctor_heal_fail.mp3"
+        text: "The Doctor used their medicine in vain."
+
+    player_killed:
+      - file: "themes/default/assets/player_killed.mp3"
+        text: "We found the body of"
+    
+    player_executed:
+      - file: "themes/default/assets/player_executed.mp3"
+        text: "The town has executed"
+        
+    town_win:
+      - file: "themes/default/assets/town_win.mp3"
+        text: "Town Wins! Peace returns to Chicago."
+    
+    mafia_win:
+      - file: "themes/default/assets/mafia_win.mp3"
+        text: "Mafia Wins! The city falls into darkness."
+    
+    maniac_win:
+      - file: "themes/default/assets/maniac_win.mp3"
+        text: "Maniac Wins! Madness prevails."
+        
+    commissar_visit:
+      - file: "themes/default/assets/commissar_visit.mp3"
+        text: "The Commissar investigated"
+        
+    vote_tie:
+      - file: "themes/default/assets/vote_tie.mp3"
+        text: "The town could not agree. Night falls."
+
+    mafia_miss:
+      - file: "themes/default/assets/mafia_miss.mp3"
+        text: "The Mafia could not agree on a target."
+    
+    commissar_miss:
+      - file: "themes/default/assets/commissar_miss.mp3"
+        text: "The Commissar failed to investigate anyone."
+
+    doctor_miss:
+      - file: "themes/default/assets/doctor_miss.mp3"
+        text: "The Doctor did not heal anyone."
+    
+    prostitute_miss:
+      - file: "themes/default/assets/prostitute_miss.mp3"
+        text: "The Prostitute stayed home."
+
+    # Player Numbers (1-20)
+    player_1:
+      - file: "themes/default/assets/player_1.mp3"
+        text: "Player 1"
+    player_2:
+      - file: "themes/default/assets/player_2.mp3"
+        text: "Player 2"
+    player_3:
+      - file: "themes/default/assets/player_3.mp3"
+        text: "Player 3"
+    player_4:
+      - file: "themes/default/assets/player_4.mp3"
+        text: "Player 4"
+    player_5:
+      - file: "themes/default/assets/player_5.mp3"
+        text: "Player 5"
+    player_6:
+      - file: "themes/default/assets/player_6.mp3"
+        text: "Player 6"
+    player_7:
+      - file: "themes/default/assets/player_7.mp3"
+        text: "Player 7"
+    player_8:
+      - file: "themes/default/assets/player_8.mp3"
+        text: "Player 8"
+    player_9:
+      - file: "themes/default/assets/player_9.mp3"
+        text: "Player 9"
+    player_10:
+      - file: "themes/default/assets/player_10.mp3"
+        text: "Player 10"
+    player_11:
+      - file: "themes/default/assets/player_11.mp3"
+        text: "Player 11"
+    player_12:
+      - file: "themes/default/assets/player_12.mp3"
+        text: "Player 12"
+    player_13:
+      - file: "themes/default/assets/player_13.mp3"
+        text: "Player 13"
+    player_14:
+      - file: "themes/default/assets/player_14.mp3"
+        text: "Player 14"
+    player_15:
+      - file: "themes/default/assets/player_15.mp3"
+        text: "Player 15"
+    player_16:
+      - file: "themes/default/assets/player_16.mp3"
+        text: "Player 16"
+    player_17:
+      - file: "themes/default/assets/player_17.mp3"
+        text: "Player 17"
+    player_18:
+      - file: "themes/default/assets/player_18.mp3"
+        text: "Player 18"
+    player_19:
+      - file: "themes/default/assets/player_19.mp3"
+        text: "Player 19"
+    player_20:
+      - file: "themes/default/assets/player_20.mp3"
+        text: "Player 20"
     
     # Timer announcements (voice)
     timer_30sec:

@@ -1,0 +1,18 @@
+id: classic_chicago
+name: Classic Chicago
+author: DeepMind
+roles:
+  civilian: Peacekeeper
+  mafia: Gangster
+  commissar: Sheriff
+audio:
+  events:
+    night_start: ["night_1.mp3", "night_2.mp3"]
+    day_start: ["day_1.mp3"]
+  background:
+    night: "bg_night.mp3"
+    day: "bg_day.mp3"
+mixing:
+  announcement_volume: 1.0
+  background_duck_volume: 0.1
+  background_normal_volume: 0.3

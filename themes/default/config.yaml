@@ -1,0 +1,104 @@
+meta:
+  id: "default"
+  name: "Default Theme"
+  author: "System"
+  version: "1.0"
+
+# Role name overrides for UI
+roles:
+  mafia: 
+    display_name: "Mafia"
+  doctor:
+    display_name: "Doctor"
+  prostitute:
+    display_name: "Prostitute"
+  commissar:
+    display_name: "Commissar"
+  maniac:
+    display_name: "Maniac"
+  civilian:
+    display_name: "Civilian"
+
+# Audio events (List of variants for randomization)
+audio:
+  events:
+    game_start:
+      - file: "themes/default/assets/game_start.mp3"
+        text: "The game begins. Good luck to everyone."
+    
+    night_start:
+      - file: "themes/default/assets/night_start.mp3"
+        text: "Night falls. The city goes to sleep."
+    
+    mafia_wake:
+      - file: "themes/default/assets/mafia_wake.mp3"
+        text: "Mafia, wake up and choose your target."
+    
+    prostitute_wake:
+      - file: "themes/default/assets/prostitute_wake.mp3"
+        text: "Prostitute, wake up."
+        
+    maniac_wake:
+      - file: "themes/default/assets/maniac_wake.mp3"
+        text: "Maniac, wake up."
+
+    doctor_wake:
+      - file: "themes/default/assets/doctor_wake.mp3"
+        text: "Doctor, wake up."
+
+    commissar_wake:
+      - file: "themes/default/assets/commissar_wake.mp3"
+        text: "Commissar, wake up."
+
+    day_start:
+      - file: "themes/default/assets/day_start.mp3"
+        text: "Morning has come. Let's see what happened tonight."
+    
+    execution:
+      - file: "themes/default/assets/execution.mp3"
+        text: "The verdict has been carried out."
+    
+    # Timer announcements (voice)
+    timer_30sec:
+      - file: "themes/default/assets/timer_30sec.mp3"
+        text: "30 seconds remaining"
+    
+    timer_20sec:
+      - file: "themes/default/assets/timer_20sec.mp3"
+        text: "20 seconds remaining"
+    
+    timer_10sec:
+      - file: "themes/default/assets/timer_10sec.mp3"
+        text: "10 seconds remaining"
+    
+    countdown:
+      ten: "themes/default/assets/countdown_10.mp3"
+      nine: "themes/default/assets/countdown_9.mp3"
+      eight: "themes/default/assets/countdown_8.mp3"
+      seven: "themes/default/assets/countdown_7.mp3"
+      six: "themes/default/assets/countdown_6.mp3"
+      five: "themes/default/assets/countdown_5.mp3"
+      four: "themes/default/assets/countdown_4.mp3"
+      three: "themes/default/assets/countdown_3.mp3"
+      two: "themes/default/assets/countdown_2.mp3"
+      one: "themes/default/assets/countdown_1.mp3"
+  
+  # Background music
+  background:
+    lobby:
+      - file: "themes/default/assets/bg_lobby.mp3"
+        loop: true
+    
+    night:
+      - file: "themes/default/assets/bg_night.mp3"
+        loop: true
+    
+    inactive:
+      - file: "themes/default/assets/bg_waiting.mp3"
+        loop: true
+
+# Audio ducking settings
+audio_mixing:
+  background_volume: 0.3  # 30% when no announcements
+  ducking_volume: 0.1     # 10% during announcements
+  fade_duration: 500      # ms

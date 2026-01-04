@@ -1,0 +1,154 @@
+# Mafia Party Game System
+
+A professional, hybrid system for automating the "Mafia" party game in offline settings. This project acts as a **Digital Game Master**, ensuring rule compliance, vote management, timing, and atmospheric audio accompaniment.
+
+## 🚀 Architecture
+
+The system consists of two primary components:
+
+*   **Host (Desktop Application)**: Built with Flutter Desktop (macOS/Windows/Linux). It serves as the central server and main display (TV/Projector), managing the game state, audio, and participant connections.
+*   **Client (Player Controller)**: A mobile-optimized PWA (Progressive Web App) built with Flutter Web. Players connect via their smartphones to receive roles, perform secret actions, and participate in voting.
+
+## 🛠 Technology Stack
+
+*   **Framework**: Flutter (Dart)
+*   **State Management**: Riverpod (with MVC + Clean Architecture)
+*   **Networking**:
+    *   **HTTP Server**: `shelf` (Host serves the PWA static files locally)
+    *   **Real-time Co-op**: `web_socket_channel` (Bi-directional game state synchronization)
+*   **Storage**: `hive` (Local database for persistent statistics)
+*   **Audio**: `audioplayers` (Dynamic audio engine with ducking and randomization)
+*   **Utilities**: `qr_flutter`, `uuid`, `wakelock_plus`, `yaml`, `freezed`
+
+## ✨ Key Features
+
+*   **Advanced Game Mechanics**:
+    *   **Don & Prostitute Logic**: Specialized interaction where the Don can protect the Mafia from individual blocks.
+    *   **Mafia Blind Mode**: Gesture-based communication requiring 100% consensus for kills.
+    *   **"Vote Early" System**: Social consensus mechanism to skip discussion timers when all players are ready.
+*   **Dynamic Theming Engine**: Switch role names, randomized audio announcements, and background music via YAML configurations without rebuilding.
+*   **Persistent Statistics**: Tracks win rates by faction, role frequency, and game duration.
+*   **Professional Host UI**: Optimized for large screens with animated phase indicators, real-time vote visualization, and public event logs.
+*   **Mobile-First Client UI**: Dark mode optimized to minimize screen glow during night phases, featuring press-to-reveal role cards and WakeLock support.
+*   **Log Management**: Comprehensive public logs during the game and detailed secret logs (role actions, votes) exportable as `.txt` after completion.
+
+## 📂 Project Structure
+
+Following a strict **MVC + Clean Architecture** pattern:
+
+```text
+lib/
+├── core/
+│   ├── models/          # Immutable data entities (Player, Role, GameState)
+│   ├── controllers/     # Business logic & State machines (GameController, AudioController)
+│   ├── services/        # Infrastructure (WebSocketServer, HttpServer, Storage)
+│   └── state/           # Riverpod providers
+├── ui/
+│   ├── host/            # Desktop-specific screens and widgets
+│   ├── client/          # Mobile web-specific screens and widgets
+│   └── shared/          # Common components and theme constants
+├── main_host.dart       # Host application entry point
+└── main_client.dart     # Client PWA entry point
+```
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+*   Flutter SDK (Latest Stable)
+*   Dart SDK (Latest Stable)
+*   For macOS Host: Xcode installed
+*   A local network (Wi-Fi) shared between Host and Clients
+
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/eeexception/MafiaGameBot.git
+    cd MafiaGameBot/mafia_game
+    ```
+
+2.  Install dependencies:
+    ```bash
+    flutter pub get
+    ```
+
+3.  Generate model serialization code:
+    ```bash
+    flutter pub run build_runner build --delete-conflicting-outputs
+    ```
+
+## 🏃 Running the Application
+
+### 1. Launch the Host (Desktop)
+
+The Host must be started first as it hosts the web server for clients.
+
+```bash
+# Run on macOS (MVP)
+flutter run -t lib/main_host.dart -d macos
+
+# Run on Windows
+flutter run -t lib/main_host.dart -d windows
+```
+
+The Host will display a **QR Code**. Players should scan this to join.
+
+### 2. Run/Access the Client (Web)
+
+For development/testing, you can run the client locally:
+
+```bash
+flutter run -t lib/main_client.dart -d chrome
+```
+
+In a real game, the Host serves the built PWA. To prepare the client for the Host:
+
+```bash
+flutter build web -t lib/main_client.dart --web-renderer canvaskit
+```
+The Host automatically looks for the web build in the `build/web` directory (ensure pathing in `HttpServerService` is correct).
+
+## 🔨 Building for Production
+
+### macOS Application
+```bash
+flutter build macos -t lib/main_host.dart
+```
+
+### PWA (Web)
+```bash
+flutter build web -t lib/main_client.dart --release
+```
+
+## 🧪 Testing & Quality
+
+We follow **Test Driven Development (TDD)** and maintain zero static analysis warnings.
+
+### Run Unit Tests
+```bash
+flutter test
+```
+
+### Run Integration Tests
+Verifies the full Host workflow (Lobby -> Setup).
+```bash
+flutter test -d macos integration_test/full_game_flow_test.dart
+```
+
+### Static Analysis
+```bash
+flutter analyze
+```
+
+## 📜 Specifications & Nuances
+
+*   **WebSocket Protocol**: All communication is JSON-based. Clients identify via a unique device ID and session token to survive disconnections.
+*   **Audio System**: Announcement events duck the background music volume. Random variants are picked from the `config.yaml` to keep the atmosphere fresh.
+*   **Secrecy Integrity**: Role information is stored only on the Host. The Client PWA only receives its specific role. Detailed logs are encrypted/hidden until the game concludes.
+*   **Networking**: Both Host and Client must be on the **same Wi-Fi network**. The Host uses the local IP (e.g., `192.168.1.50`) for the QR code.
+
+---
+**Status**: Production Ready  
+**Version**: 1.0.0  
+**License**: Proprietary

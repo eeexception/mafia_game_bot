@@ -15,8 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GameConfig {
 
- String get themeId; bool get mafiaBlindMode;// false = Sync mode
- bool get donMechanicsEnabled; bool get prostituteEnabled; bool get maniacEnabled;// Timer durations in seconds
+ String get themeId; bool get autoPruningEnabled; bool get donMechanicsEnabled; bool get commissarEnabled; bool get doctorEnabled; bool get prostituteEnabled; bool get maniacEnabled; bool get commissarKills; bool get sergeantEnabled; bool get lawyerEnabled; bool get poisonerEnabled; bool get doctorCanHealSelf; bool get doctorCanHealSameTargetConsecutively; String get locale;// Timer durations in seconds
  int get discussionTime; int get votingTime; int get defenseTime; int get mafiaActionTime; int get otherActionTime;// Role distribution (null = auto-balance)
  int? get mafiaCount; int? get commissarCount; int? get doctorCount;
 /// Create a copy of GameConfig
@@ -31,16 +30,16 @@ $GameConfigCopyWith<GameConfig> get copyWith => _$GameConfigCopyWithImpl<GameCon
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameConfig&&(identical(other.themeId, themeId) || other.themeId == themeId)&&(identical(other.mafiaBlindMode, mafiaBlindMode) || other.mafiaBlindMode == mafiaBlindMode)&&(identical(other.donMechanicsEnabled, donMechanicsEnabled) || other.donMechanicsEnabled == donMechanicsEnabled)&&(identical(other.prostituteEnabled, prostituteEnabled) || other.prostituteEnabled == prostituteEnabled)&&(identical(other.maniacEnabled, maniacEnabled) || other.maniacEnabled == maniacEnabled)&&(identical(other.discussionTime, discussionTime) || other.discussionTime == discussionTime)&&(identical(other.votingTime, votingTime) || other.votingTime == votingTime)&&(identical(other.defenseTime, defenseTime) || other.defenseTime == defenseTime)&&(identical(other.mafiaActionTime, mafiaActionTime) || other.mafiaActionTime == mafiaActionTime)&&(identical(other.otherActionTime, otherActionTime) || other.otherActionTime == otherActionTime)&&(identical(other.mafiaCount, mafiaCount) || other.mafiaCount == mafiaCount)&&(identical(other.commissarCount, commissarCount) || other.commissarCount == commissarCount)&&(identical(other.doctorCount, doctorCount) || other.doctorCount == doctorCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameConfig&&(identical(other.themeId, themeId) || other.themeId == themeId)&&(identical(other.autoPruningEnabled, autoPruningEnabled) || other.autoPruningEnabled == autoPruningEnabled)&&(identical(other.donMechanicsEnabled, donMechanicsEnabled) || other.donMechanicsEnabled == donMechanicsEnabled)&&(identical(other.commissarEnabled, commissarEnabled) || other.commissarEnabled == commissarEnabled)&&(identical(other.doctorEnabled, doctorEnabled) || other.doctorEnabled == doctorEnabled)&&(identical(other.prostituteEnabled, prostituteEnabled) || other.prostituteEnabled == prostituteEnabled)&&(identical(other.maniacEnabled, maniacEnabled) || other.maniacEnabled == maniacEnabled)&&(identical(other.commissarKills, commissarKills) || other.commissarKills == commissarKills)&&(identical(other.sergeantEnabled, sergeantEnabled) || other.sergeantEnabled == sergeantEnabled)&&(identical(other.lawyerEnabled, lawyerEnabled) || other.lawyerEnabled == lawyerEnabled)&&(identical(other.poisonerEnabled, poisonerEnabled) || other.poisonerEnabled == poisonerEnabled)&&(identical(other.doctorCanHealSelf, doctorCanHealSelf) || other.doctorCanHealSelf == doctorCanHealSelf)&&(identical(other.doctorCanHealSameTargetConsecutively, doctorCanHealSameTargetConsecutively) || other.doctorCanHealSameTargetConsecutively == doctorCanHealSameTargetConsecutively)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.discussionTime, discussionTime) || other.discussionTime == discussionTime)&&(identical(other.votingTime, votingTime) || other.votingTime == votingTime)&&(identical(other.defenseTime, defenseTime) || other.defenseTime == defenseTime)&&(identical(other.mafiaActionTime, mafiaActionTime) || other.mafiaActionTime == mafiaActionTime)&&(identical(other.otherActionTime, otherActionTime) || other.otherActionTime == otherActionTime)&&(identical(other.mafiaCount, mafiaCount) || other.mafiaCount == mafiaCount)&&(identical(other.commissarCount, commissarCount) || other.commissarCount == commissarCount)&&(identical(other.doctorCount, doctorCount) || other.doctorCount == doctorCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,themeId,mafiaBlindMode,donMechanicsEnabled,prostituteEnabled,maniacEnabled,discussionTime,votingTime,defenseTime,mafiaActionTime,otherActionTime,mafiaCount,commissarCount,doctorCount);
+int get hashCode => Object.hashAll([runtimeType,themeId,autoPruningEnabled,donMechanicsEnabled,commissarEnabled,doctorEnabled,prostituteEnabled,maniacEnabled,commissarKills,sergeantEnabled,lawyerEnabled,poisonerEnabled,doctorCanHealSelf,doctorCanHealSameTargetConsecutively,locale,discussionTime,votingTime,defenseTime,mafiaActionTime,otherActionTime,mafiaCount,commissarCount,doctorCount]);
 
 @override
 String toString() {
-  return 'GameConfig(themeId: $themeId, mafiaBlindMode: $mafiaBlindMode, donMechanicsEnabled: $donMechanicsEnabled, prostituteEnabled: $prostituteEnabled, maniacEnabled: $maniacEnabled, discussionTime: $discussionTime, votingTime: $votingTime, defenseTime: $defenseTime, mafiaActionTime: $mafiaActionTime, otherActionTime: $otherActionTime, mafiaCount: $mafiaCount, commissarCount: $commissarCount, doctorCount: $doctorCount)';
+  return 'GameConfig(themeId: $themeId, autoPruningEnabled: $autoPruningEnabled, donMechanicsEnabled: $donMechanicsEnabled, commissarEnabled: $commissarEnabled, doctorEnabled: $doctorEnabled, prostituteEnabled: $prostituteEnabled, maniacEnabled: $maniacEnabled, commissarKills: $commissarKills, sergeantEnabled: $sergeantEnabled, lawyerEnabled: $lawyerEnabled, poisonerEnabled: $poisonerEnabled, doctorCanHealSelf: $doctorCanHealSelf, doctorCanHealSameTargetConsecutively: $doctorCanHealSameTargetConsecutively, locale: $locale, discussionTime: $discussionTime, votingTime: $votingTime, defenseTime: $defenseTime, mafiaActionTime: $mafiaActionTime, otherActionTime: $otherActionTime, mafiaCount: $mafiaCount, commissarCount: $commissarCount, doctorCount: $doctorCount)';
 }
 
 
@@ -51,7 +50,7 @@ abstract mixin class $GameConfigCopyWith<$Res>  {
   factory $GameConfigCopyWith(GameConfig value, $Res Function(GameConfig) _then) = _$GameConfigCopyWithImpl;
 @useResult
 $Res call({
- String themeId, bool mafiaBlindMode, bool donMechanicsEnabled, bool prostituteEnabled, bool maniacEnabled, int discussionTime, int votingTime, int defenseTime, int mafiaActionTime, int otherActionTime, int? mafiaCount, int? commissarCount, int? doctorCount
+ String themeId, bool autoPruningEnabled, bool donMechanicsEnabled, bool commissarEnabled, bool doctorEnabled, bool prostituteEnabled, bool maniacEnabled, bool commissarKills, bool sergeantEnabled, bool lawyerEnabled, bool poisonerEnabled, bool doctorCanHealSelf, bool doctorCanHealSameTargetConsecutively, String locale, int discussionTime, int votingTime, int defenseTime, int mafiaActionTime, int otherActionTime, int? mafiaCount, int? commissarCount, int? doctorCount
 });
 
 
@@ -68,14 +67,23 @@ class _$GameConfigCopyWithImpl<$Res>
 
 /// Create a copy of GameConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? themeId = null,Object? mafiaBlindMode = null,Object? donMechanicsEnabled = null,Object? prostituteEnabled = null,Object? maniacEnabled = null,Object? discussionTime = null,Object? votingTime = null,Object? defenseTime = null,Object? mafiaActionTime = null,Object? otherActionTime = null,Object? mafiaCount = freezed,Object? commissarCount = freezed,Object? doctorCount = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? themeId = null,Object? autoPruningEnabled = null,Object? donMechanicsEnabled = null,Object? commissarEnabled = null,Object? doctorEnabled = null,Object? prostituteEnabled = null,Object? maniacEnabled = null,Object? commissarKills = null,Object? sergeantEnabled = null,Object? lawyerEnabled = null,Object? poisonerEnabled = null,Object? doctorCanHealSelf = null,Object? doctorCanHealSameTargetConsecutively = null,Object? locale = null,Object? discussionTime = null,Object? votingTime = null,Object? defenseTime = null,Object? mafiaActionTime = null,Object? otherActionTime = null,Object? mafiaCount = freezed,Object? commissarCount = freezed,Object? doctorCount = freezed,}) {
   return _then(_self.copyWith(
 themeId: null == themeId ? _self.themeId : themeId // ignore: cast_nullable_to_non_nullable
-as String,mafiaBlindMode: null == mafiaBlindMode ? _self.mafiaBlindMode : mafiaBlindMode // ignore: cast_nullable_to_non_nullable
+as String,autoPruningEnabled: null == autoPruningEnabled ? _self.autoPruningEnabled : autoPruningEnabled // ignore: cast_nullable_to_non_nullable
 as bool,donMechanicsEnabled: null == donMechanicsEnabled ? _self.donMechanicsEnabled : donMechanicsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,commissarEnabled: null == commissarEnabled ? _self.commissarEnabled : commissarEnabled // ignore: cast_nullable_to_non_nullable
+as bool,doctorEnabled: null == doctorEnabled ? _self.doctorEnabled : doctorEnabled // ignore: cast_nullable_to_non_nullable
 as bool,prostituteEnabled: null == prostituteEnabled ? _self.prostituteEnabled : prostituteEnabled // ignore: cast_nullable_to_non_nullable
 as bool,maniacEnabled: null == maniacEnabled ? _self.maniacEnabled : maniacEnabled // ignore: cast_nullable_to_non_nullable
-as bool,discussionTime: null == discussionTime ? _self.discussionTime : discussionTime // ignore: cast_nullable_to_non_nullable
+as bool,commissarKills: null == commissarKills ? _self.commissarKills : commissarKills // ignore: cast_nullable_to_non_nullable
+as bool,sergeantEnabled: null == sergeantEnabled ? _self.sergeantEnabled : sergeantEnabled // ignore: cast_nullable_to_non_nullable
+as bool,lawyerEnabled: null == lawyerEnabled ? _self.lawyerEnabled : lawyerEnabled // ignore: cast_nullable_to_non_nullable
+as bool,poisonerEnabled: null == poisonerEnabled ? _self.poisonerEnabled : poisonerEnabled // ignore: cast_nullable_to_non_nullable
+as bool,doctorCanHealSelf: null == doctorCanHealSelf ? _self.doctorCanHealSelf : doctorCanHealSelf // ignore: cast_nullable_to_non_nullable
+as bool,doctorCanHealSameTargetConsecutively: null == doctorCanHealSameTargetConsecutively ? _self.doctorCanHealSameTargetConsecutively : doctorCanHealSameTargetConsecutively // ignore: cast_nullable_to_non_nullable
+as bool,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
+as String,discussionTime: null == discussionTime ? _self.discussionTime : discussionTime // ignore: cast_nullable_to_non_nullable
 as int,votingTime: null == votingTime ? _self.votingTime : votingTime // ignore: cast_nullable_to_non_nullable
 as int,defenseTime: null == defenseTime ? _self.defenseTime : defenseTime // ignore: cast_nullable_to_non_nullable
 as int,mafiaActionTime: null == mafiaActionTime ? _self.mafiaActionTime : mafiaActionTime // ignore: cast_nullable_to_non_nullable
@@ -168,10 +176,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String themeId,  bool mafiaBlindMode,  bool donMechanicsEnabled,  bool prostituteEnabled,  bool maniacEnabled,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String themeId,  bool autoPruningEnabled,  bool donMechanicsEnabled,  bool commissarEnabled,  bool doctorEnabled,  bool prostituteEnabled,  bool maniacEnabled,  bool commissarKills,  bool sergeantEnabled,  bool lawyerEnabled,  bool poisonerEnabled,  bool doctorCanHealSelf,  bool doctorCanHealSameTargetConsecutively,  String locale,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GameConfig() when $default != null:
-return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
+return $default(_that.themeId,_that.autoPruningEnabled,_that.donMechanicsEnabled,_that.commissarEnabled,_that.doctorEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.commissarKills,_that.sergeantEnabled,_that.lawyerEnabled,_that.poisonerEnabled,_that.doctorCanHealSelf,_that.doctorCanHealSameTargetConsecutively,_that.locale,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
   return orElse();
 
 }
@@ -189,10 +197,10 @@ return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String themeId,  bool mafiaBlindMode,  bool donMechanicsEnabled,  bool prostituteEnabled,  bool maniacEnabled,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String themeId,  bool autoPruningEnabled,  bool donMechanicsEnabled,  bool commissarEnabled,  bool doctorEnabled,  bool prostituteEnabled,  bool maniacEnabled,  bool commissarKills,  bool sergeantEnabled,  bool lawyerEnabled,  bool poisonerEnabled,  bool doctorCanHealSelf,  bool doctorCanHealSameTargetConsecutively,  String locale,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)  $default,) {final _that = this;
 switch (_that) {
 case _GameConfig():
-return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
+return $default(_that.themeId,_that.autoPruningEnabled,_that.donMechanicsEnabled,_that.commissarEnabled,_that.doctorEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.commissarKills,_that.sergeantEnabled,_that.lawyerEnabled,_that.poisonerEnabled,_that.doctorCanHealSelf,_that.doctorCanHealSameTargetConsecutively,_that.locale,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +217,10 @@ return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String themeId,  bool mafiaBlindMode,  bool donMechanicsEnabled,  bool prostituteEnabled,  bool maniacEnabled,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String themeId,  bool autoPruningEnabled,  bool donMechanicsEnabled,  bool commissarEnabled,  bool doctorEnabled,  bool prostituteEnabled,  bool maniacEnabled,  bool commissarKills,  bool sergeantEnabled,  bool lawyerEnabled,  bool poisonerEnabled,  bool doctorCanHealSelf,  bool doctorCanHealSameTargetConsecutively,  String locale,  int discussionTime,  int votingTime,  int defenseTime,  int mafiaActionTime,  int otherActionTime,  int? mafiaCount,  int? commissarCount,  int? doctorCount)?  $default,) {final _that = this;
 switch (_that) {
 case _GameConfig() when $default != null:
-return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
+return $default(_that.themeId,_that.autoPruningEnabled,_that.donMechanicsEnabled,_that.commissarEnabled,_that.doctorEnabled,_that.prostituteEnabled,_that.maniacEnabled,_that.commissarKills,_that.sergeantEnabled,_that.lawyerEnabled,_that.poisonerEnabled,_that.doctorCanHealSelf,_that.doctorCanHealSameTargetConsecutively,_that.locale,_that.discussionTime,_that.votingTime,_that.defenseTime,_that.mafiaActionTime,_that.otherActionTime,_that.mafiaCount,_that.commissarCount,_that.doctorCount);case _:
   return null;
 
 }
@@ -224,15 +232,23 @@ return $default(_that.themeId,_that.mafiaBlindMode,_that.donMechanicsEnabled,_th
 @JsonSerializable()
 
 class _GameConfig implements GameConfig {
-  const _GameConfig({required this.themeId, this.mafiaBlindMode = true, this.donMechanicsEnabled = false, this.prostituteEnabled = true, this.maniacEnabled = true, this.discussionTime = 120, this.votingTime = 60, this.defenseTime = 60, this.mafiaActionTime = 90, this.otherActionTime = 60, this.mafiaCount, this.commissarCount, this.doctorCount});
+  const _GameConfig({required this.themeId, this.autoPruningEnabled = true, this.donMechanicsEnabled = false, this.commissarEnabled = true, this.doctorEnabled = true, this.prostituteEnabled = false, this.maniacEnabled = false, this.commissarKills = false, this.sergeantEnabled = false, this.lawyerEnabled = false, this.poisonerEnabled = false, this.doctorCanHealSelf = true, this.doctorCanHealSameTargetConsecutively = false, this.locale = 'en', this.discussionTime = 120, this.votingTime = 60, this.defenseTime = 60, this.mafiaActionTime = 90, this.otherActionTime = 60, this.mafiaCount, this.commissarCount, this.doctorCount});
   factory _GameConfig.fromJson(Map<String, dynamic> json) => _$GameConfigFromJson(json);
 
 @override final  String themeId;
-@override@JsonKey() final  bool mafiaBlindMode;
-// false = Sync mode
+@override@JsonKey() final  bool autoPruningEnabled;
 @override@JsonKey() final  bool donMechanicsEnabled;
+@override@JsonKey() final  bool commissarEnabled;
+@override@JsonKey() final  bool doctorEnabled;
 @override@JsonKey() final  bool prostituteEnabled;
 @override@JsonKey() final  bool maniacEnabled;
+@override@JsonKey() final  bool commissarKills;
+@override@JsonKey() final  bool sergeantEnabled;
+@override@JsonKey() final  bool lawyerEnabled;
+@override@JsonKey() final  bool poisonerEnabled;
+@override@JsonKey() final  bool doctorCanHealSelf;
+@override@JsonKey() final  bool doctorCanHealSameTargetConsecutively;
+@override@JsonKey() final  String locale;
 // Timer durations in seconds
 @override@JsonKey() final  int discussionTime;
 @override@JsonKey() final  int votingTime;
@@ -257,16 +273,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameConfig&&(identical(other.themeId, themeId) || other.themeId == themeId)&&(identical(other.mafiaBlindMode, mafiaBlindMode) || other.mafiaBlindMode == mafiaBlindMode)&&(identical(other.donMechanicsEnabled, donMechanicsEnabled) || other.donMechanicsEnabled == donMechanicsEnabled)&&(identical(other.prostituteEnabled, prostituteEnabled) || other.prostituteEnabled == prostituteEnabled)&&(identical(other.maniacEnabled, maniacEnabled) || other.maniacEnabled == maniacEnabled)&&(identical(other.discussionTime, discussionTime) || other.discussionTime == discussionTime)&&(identical(other.votingTime, votingTime) || other.votingTime == votingTime)&&(identical(other.defenseTime, defenseTime) || other.defenseTime == defenseTime)&&(identical(other.mafiaActionTime, mafiaActionTime) || other.mafiaActionTime == mafiaActionTime)&&(identical(other.otherActionTime, otherActionTime) || other.otherActionTime == otherActionTime)&&(identical(other.mafiaCount, mafiaCount) || other.mafiaCount == mafiaCount)&&(identical(other.commissarCount, commissarCount) || other.commissarCount == commissarCount)&&(identical(other.doctorCount, doctorCount) || other.doctorCount == doctorCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameConfig&&(identical(other.themeId, themeId) || other.themeId == themeId)&&(identical(other.autoPruningEnabled, autoPruningEnabled) || other.autoPruningEnabled == autoPruningEnabled)&&(identical(other.donMechanicsEnabled, donMechanicsEnabled) || other.donMechanicsEnabled == donMechanicsEnabled)&&(identical(other.commissarEnabled, commissarEnabled) || other.commissarEnabled == commissarEnabled)&&(identical(other.doctorEnabled, doctorEnabled) || other.doctorEnabled == doctorEnabled)&&(identical(other.prostituteEnabled, prostituteEnabled) || other.prostituteEnabled == prostituteEnabled)&&(identical(other.maniacEnabled, maniacEnabled) || other.maniacEnabled == maniacEnabled)&&(identical(other.commissarKills, commissarKills) || other.commissarKills == commissarKills)&&(identical(other.sergeantEnabled, sergeantEnabled) || other.sergeantEnabled == sergeantEnabled)&&(identical(other.lawyerEnabled, lawyerEnabled) || other.lawyerEnabled == lawyerEnabled)&&(identical(other.poisonerEnabled, poisonerEnabled) || other.poisonerEnabled == poisonerEnabled)&&(identical(other.doctorCanHealSelf, doctorCanHealSelf) || other.doctorCanHealSelf == doctorCanHealSelf)&&(identical(other.doctorCanHealSameTargetConsecutively, doctorCanHealSameTargetConsecutively) || other.doctorCanHealSameTargetConsecutively == doctorCanHealSameTargetConsecutively)&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.discussionTime, discussionTime) || other.discussionTime == discussionTime)&&(identical(other.votingTime, votingTime) || other.votingTime == votingTime)&&(identical(other.defenseTime, defenseTime) || other.defenseTime == defenseTime)&&(identical(other.mafiaActionTime, mafiaActionTime) || other.mafiaActionTime == mafiaActionTime)&&(identical(other.otherActionTime, otherActionTime) || other.otherActionTime == otherActionTime)&&(identical(other.mafiaCount, mafiaCount) || other.mafiaCount == mafiaCount)&&(identical(other.commissarCount, commissarCount) || other.commissarCount == commissarCount)&&(identical(other.doctorCount, doctorCount) || other.doctorCount == doctorCount));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,themeId,mafiaBlindMode,donMechanicsEnabled,prostituteEnabled,maniacEnabled,discussionTime,votingTime,defenseTime,mafiaActionTime,otherActionTime,mafiaCount,commissarCount,doctorCount);
+int get hashCode => Object.hashAll([runtimeType,themeId,autoPruningEnabled,donMechanicsEnabled,commissarEnabled,doctorEnabled,prostituteEnabled,maniacEnabled,commissarKills,sergeantEnabled,lawyerEnabled,poisonerEnabled,doctorCanHealSelf,doctorCanHealSameTargetConsecutively,locale,discussionTime,votingTime,defenseTime,mafiaActionTime,otherActionTime,mafiaCount,commissarCount,doctorCount]);
 
 @override
 String toString() {
-  return 'GameConfig(themeId: $themeId, mafiaBlindMode: $mafiaBlindMode, donMechanicsEnabled: $donMechanicsEnabled, prostituteEnabled: $prostituteEnabled, maniacEnabled: $maniacEnabled, discussionTime: $discussionTime, votingTime: $votingTime, defenseTime: $defenseTime, mafiaActionTime: $mafiaActionTime, otherActionTime: $otherActionTime, mafiaCount: $mafiaCount, commissarCount: $commissarCount, doctorCount: $doctorCount)';
+  return 'GameConfig(themeId: $themeId, autoPruningEnabled: $autoPruningEnabled, donMechanicsEnabled: $donMechanicsEnabled, commissarEnabled: $commissarEnabled, doctorEnabled: $doctorEnabled, prostituteEnabled: $prostituteEnabled, maniacEnabled: $maniacEnabled, commissarKills: $commissarKills, sergeantEnabled: $sergeantEnabled, lawyerEnabled: $lawyerEnabled, poisonerEnabled: $poisonerEnabled, doctorCanHealSelf: $doctorCanHealSelf, doctorCanHealSameTargetConsecutively: $doctorCanHealSameTargetConsecutively, locale: $locale, discussionTime: $discussionTime, votingTime: $votingTime, defenseTime: $defenseTime, mafiaActionTime: $mafiaActionTime, otherActionTime: $otherActionTime, mafiaCount: $mafiaCount, commissarCount: $commissarCount, doctorCount: $doctorCount)';
 }
 
 
@@ -277,7 +293,7 @@ abstract mixin class _$GameConfigCopyWith<$Res> implements $GameConfigCopyWith<$
   factory _$GameConfigCopyWith(_GameConfig value, $Res Function(_GameConfig) _then) = __$GameConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String themeId, bool mafiaBlindMode, bool donMechanicsEnabled, bool prostituteEnabled, bool maniacEnabled, int discussionTime, int votingTime, int defenseTime, int mafiaActionTime, int otherActionTime, int? mafiaCount, int? commissarCount, int? doctorCount
+ String themeId, bool autoPruningEnabled, bool donMechanicsEnabled, bool commissarEnabled, bool doctorEnabled, bool prostituteEnabled, bool maniacEnabled, bool commissarKills, bool sergeantEnabled, bool lawyerEnabled, bool poisonerEnabled, bool doctorCanHealSelf, bool doctorCanHealSameTargetConsecutively, String locale, int discussionTime, int votingTime, int defenseTime, int mafiaActionTime, int otherActionTime, int? mafiaCount, int? commissarCount, int? doctorCount
 });
 
 
@@ -294,14 +310,23 @@ class __$GameConfigCopyWithImpl<$Res>
 
 /// Create a copy of GameConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? themeId = null,Object? mafiaBlindMode = null,Object? donMechanicsEnabled = null,Object? prostituteEnabled = null,Object? maniacEnabled = null,Object? discussionTime = null,Object? votingTime = null,Object? defenseTime = null,Object? mafiaActionTime = null,Object? otherActionTime = null,Object? mafiaCount = freezed,Object? commissarCount = freezed,Object? doctorCount = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? themeId = null,Object? autoPruningEnabled = null,Object? donMechanicsEnabled = null,Object? commissarEnabled = null,Object? doctorEnabled = null,Object? prostituteEnabled = null,Object? maniacEnabled = null,Object? commissarKills = null,Object? sergeantEnabled = null,Object? lawyerEnabled = null,Object? poisonerEnabled = null,Object? doctorCanHealSelf = null,Object? doctorCanHealSameTargetConsecutively = null,Object? locale = null,Object? discussionTime = null,Object? votingTime = null,Object? defenseTime = null,Object? mafiaActionTime = null,Object? otherActionTime = null,Object? mafiaCount = freezed,Object? commissarCount = freezed,Object? doctorCount = freezed,}) {
   return _then(_GameConfig(
 themeId: null == themeId ? _self.themeId : themeId // ignore: cast_nullable_to_non_nullable
-as String,mafiaBlindMode: null == mafiaBlindMode ? _self.mafiaBlindMode : mafiaBlindMode // ignore: cast_nullable_to_non_nullable
+as String,autoPruningEnabled: null == autoPruningEnabled ? _self.autoPruningEnabled : autoPruningEnabled // ignore: cast_nullable_to_non_nullable
 as bool,donMechanicsEnabled: null == donMechanicsEnabled ? _self.donMechanicsEnabled : donMechanicsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,commissarEnabled: null == commissarEnabled ? _self.commissarEnabled : commissarEnabled // ignore: cast_nullable_to_non_nullable
+as bool,doctorEnabled: null == doctorEnabled ? _self.doctorEnabled : doctorEnabled // ignore: cast_nullable_to_non_nullable
 as bool,prostituteEnabled: null == prostituteEnabled ? _self.prostituteEnabled : prostituteEnabled // ignore: cast_nullable_to_non_nullable
 as bool,maniacEnabled: null == maniacEnabled ? _self.maniacEnabled : maniacEnabled // ignore: cast_nullable_to_non_nullable
-as bool,discussionTime: null == discussionTime ? _self.discussionTime : discussionTime // ignore: cast_nullable_to_non_nullable
+as bool,commissarKills: null == commissarKills ? _self.commissarKills : commissarKills // ignore: cast_nullable_to_non_nullable
+as bool,sergeantEnabled: null == sergeantEnabled ? _self.sergeantEnabled : sergeantEnabled // ignore: cast_nullable_to_non_nullable
+as bool,lawyerEnabled: null == lawyerEnabled ? _self.lawyerEnabled : lawyerEnabled // ignore: cast_nullable_to_non_nullable
+as bool,poisonerEnabled: null == poisonerEnabled ? _self.poisonerEnabled : poisonerEnabled // ignore: cast_nullable_to_non_nullable
+as bool,doctorCanHealSelf: null == doctorCanHealSelf ? _self.doctorCanHealSelf : doctorCanHealSelf // ignore: cast_nullable_to_non_nullable
+as bool,doctorCanHealSameTargetConsecutively: null == doctorCanHealSameTargetConsecutively ? _self.doctorCanHealSameTargetConsecutively : doctorCanHealSameTargetConsecutively // ignore: cast_nullable_to_non_nullable
+as bool,locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
+as String,discussionTime: null == discussionTime ? _self.discussionTime : discussionTime // ignore: cast_nullable_to_non_nullable
 as int,votingTime: null == votingTime ? _self.votingTime : votingTime // ignore: cast_nullable_to_non_nullable
 as int,defenseTime: null == defenseTime ? _self.defenseTime : defenseTime // ignore: cast_nullable_to_non_nullable
 as int,mafiaActionTime: null == mafiaActionTime ? _self.mafiaActionTime : mafiaActionTime // ignore: cast_nullable_to_non_nullable

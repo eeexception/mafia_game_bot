@@ -1,0 +1,188 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Мафия",
+  "gameSetup": "НАСТРОЙКА ИГРЫ",
+  "playersConnected": "Подключено игроков: {count}",
+  "@playersConnected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rolesAndMechanics": "РОЛИ И МЕХАНИКИ",
+  "commissarRole": "Роль Комиссара",
+  "commissarSubtitle": "Следователь города (Рекомендуется: 3+ игрока)",
+  "doctorRole": "Роль Доктора",
+  "doctorSubtitle": "Лекарь города (Рекомендуется: 4+ игрока)",
+  "doctorCanHealSelf": "Доктор может лечить себя",
+  "allowConsecutiveHealing": "Разрешить последовательное лечение",
+  "allowConsecutiveHealingSubtitle": "Можно лечить одного игрока два хода подряд",
+  "prostituteRole": "Роль Проститутки",
+  "prostituteSubtitle": "Блокирует ночные действия (Рекомендуется: 5+ игроков)",
+  "maniacRole": "Роль Маньяка",
+  "maniacSubtitle": "Нейтральный убийца (Рекомендуется: 9+ игроков)",
+  "sergeantRole": "Роль Сержанта",
+  "sergeantSubtitle": "Помощник комиссара (Рекомендуется: 6+ игроков)",
+  "lawyerRole": "Роль Адвоката",
+  "lawyerSubtitle": "Следователь мафии (Рекомендуется: 7+ игроков)",
+  "poisonerRole": "Роль Отравителя",
+  "poisonerSubtitle": "Нейтральная роль с ловушками (Рекомендуется: 8+ игроков)",
+  "gameMechanics": "МЕХАНИКА ИГРЫ",
+  "autoPruning": "Автоматическое сокращение ролей",
+  "autoPruningSubtitle": "Пропускать роли, если недостаточно игроков",
+  "donMechanics": "Механика Дона",
+  "donMechanicsSubtitle": "Лидер мафии управляет убийством (Рекомендуется: 3+ игрока)",
+  "commissarKills": "Комиссар может убивать",
+  "commissarKillsSubtitle": "Комиссар стреляет вместо проверки",
+  "discussion": "Обсуждение",
+  "voting": "Голосование",
+  "defense": "Защита",
+  "mafiaAction": "Ход мафии",
+  "timers": "ТАЙМЕРЫ (Секунды)",
+  "themeAndVoiceActing": "ТЕМА И ОЗВУЧКА",
+  "readyToStart": "ГОТОВЫ НАЧАТЬ?",
+  "distributeRoles": "РАСПРЕДЕЛИТЬ РОЛИ",
+  "needAtLeast3Players": "Нужно минимум 3 игрока",
+  "byAuthor": "от {author}",
+  "@byAuthor": {
+    "placeholders": {
+      "author": {}
+    }
+  },
+  "language": "Язык",
+  "english": "English",
+  "russian": "Русский",
+  "startGame": "НАЧАТЬ ИГРУ",
+  "waitingForPlayers": "Ожидание игроков...",
+  "mafia": "Мафия",
+  "civilian": "Мирный житель",
+  "doctor": "Доктор",
+  "prostitute": "Проститутка",
+  "commissar": "Комиссар",
+  "maniac": "Маньяк",
+  "sergeant": "Сержант",
+  "lawyer": "Адвокат",
+  "poisoner": "Отравитель",
+  "scanToJoin": "Сканируйте, чтобы подключиться",
+  "connectedPlayersCount": "Подключено игроков: {count}",
+  "@connectedPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalPlayersRegistered": "({count} всего зарегистрировано)",
+  "@totalPlayersRegistered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removeDisconnectedPlayer": "Удалить отключенного игрока",
+  "viewStatistics": "ПРОСМОТР СТАТИСТИКИ",
+  "setupGame": "НАСТРОЙКА ИГРЫ",
+  "audioNotFound": "⚠️ АУДИОФАЙЛ НЕ НАЙДЕН: {path}",
+  "@audioNotFound": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "stopGame": "ОСТАНОВИТЬ ИГРУ?",
+  "stopGameConfirm": "Вы уверены, что хотите остановить игру? Все роли будут раскрыты.",
+  "cancel": "ОТМЕНА",
+  "stop": "СТОП",
+  "paused": "ПАУЗА",
+  "phaseLobby": "Лобби",
+  "phaseSetup": "Настройка",
+  "phaseRoleReveal": "Распределение ролей",
+  "phaseNightMafia": "Ночь: Мафия",
+  "phaseNightProstitute": "Ночь: Проститутка",
+  "phaseNightManiac": "Ночь: Маньяк",
+  "phaseNightDoctor": "Ночь: Доктор",
+  "phaseNightPoisoner": "Ночь: Отравитель",
+  "phaseNightCommissar": "Ночь: Комиссар",
+  "phaseMorning": "Утро",
+  "phaseDayDiscussion": "День: Обсуждение",
+  "phaseDayVoting": "День: Голосование",
+  "phaseDayDefense": "День: Оправдательная речь",
+  "phaseDayVerdict": "День: Вердикт",
+  "phaseGameOver": "Конец игры",
+  "resumeSpace": "ПРОДОЛЖИТЬ (SPACE)",
+  "pauseSpace": "ПАУЗА (SPACE)",
+  "stopGameEsc": "ОСТАНОВИТЬ ИГРУ (ESC)",
+  "advancePhase": "СЛЕДУЮЩАЯ ФАЗА",
+  "gamePausedLarge": "ИГРА НА ПАУЗЕ",
+  "judgingPlayer": "СУД НАД ИГРОКОМ {number}",
+  "@judgingPlayer": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "execute": "КАЗНИТЬ",
+  "pardon": "ПОМИЛОВАТЬ",
+  "votesCast": "ГОЛОСОВ ПОДАНО",
+  "remaining": "ОСТАЛОСЬ",
+  "eventLog": "ЖУРНАЛ СОБЫТИЙ",
+  "eliminated": "ВЫБЫЛ",
+  "votesCount": "ГОЛОСОВ: {count}",
+  "@votesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "votingFor": "ГОЛОСУЕТ ПРОТИВ #{number}",
+  "@votingFor": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "no": "№",
+  "nickname": "НИКНЕЙМ",
+  "role": "РОЛЬ",
+  "status": "СТАТУС",
+  "alive": "ЖИВ",
+  "newGameKeepPlayers": "НОВАЯ ИГРА (ТЕ ЖЕ ИГРОКИ)",
+  "exitToMainMenu": "ВЫХОД В ГЛАВНОЕ МЕНЮ",
+  "exportLog": "ЭКСПОРТ ЛОГА",
+  "logExportedTo": "Лог экспортирован в: {path}",
+  "@logExportedTo": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "failedToExportLog": "Не удалось экспортировать лог",
+  "errorLoadingThemes": "Ошибка при загрузке тем: {error}",
+  "@errorLoadingThemes": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "gameStatistics": "ИГРОВАЯ СТАТИСТИКА",
+  "totalGamesPlayed": "ВСЕГО ИГР ПРОВЕДЕНО",
+  "townWins": "ПОБЕД ГОРОДА",
+  "mafiaWins": "ПОБЕД МАФИИ",
+  "maniacWins": "ПОБЕД МАНЬЯКА",
+  "resetAllStatistics": "СБРОСИТЬ ВСЮ СТАТИСТИКУ",
+  "resultsViewing": "ПРОСМОТР РЕЗУЛЬТАТОВ",
+  "fallAsleep": "ЗАСНУТЬ (ГОТОВО)",
+  "actionConfirmed": "ДЕЙСТВИЕ ПОДТВЕРЖДЕНО",
+  "waitingForOthers": "Ожидание остальных...",
+  "donKillAction": "ХОД ДОНА (УБИЙСТВО)",
+  "donSearch": "ПОИСК ДОНА (ИЩЕТ КОМИССАРА)",
+  "mafiaTeamVote": "ГОЛОСОВАНИЕ КОМАНДЫ МАФИИ",
+  "lawyerInvestigation": "РАССЛЕДОВАНИЕ АДВОКАТА (ИЩЕТ АКТИВНЫХ ГОРОЖАН)",
+  "poisonerAction": "ХОД ОТРАВИТЕЛЯ (ОТЛОЖЕННОЕ УБИЙСТВО)",
+  "doctorAction": "ХОД ДОКТОРА (ЛЕЧЕНИЕ)",
+  "commissarActionKill": "ХОД КОМИССАРА (УБИЙСТВО)",
+  "commissarActionInvestigate": "ХОД КОМИССАРА/СЕРЖАНТА (ПРОВЕРКА)",
+  "cityIsSleeping": "ГОРОД ЗАСЫПАЕТ..."
+}

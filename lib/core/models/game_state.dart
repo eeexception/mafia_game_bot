@@ -19,9 +19,16 @@ abstract class GameState with _$GameState {
     int? currentNightNumber,
     int? currentDayNumber,
     Map<String, String>? currentVotes,  // performerId -> targetId
+    Map<String, bool>? currentVerdicts, // performerId -> isExecute (true=execute, false=pardon)
+    String? verdictTargetId,
+    @Default([]) List<String> defenseQueue,
+    String? speakerId,
+    String? lastDoctorTargetId,
     @Default([]) List<PlayerAction> pendingActions,
     @Default([]) List<String> publicEventLog,
     @Default([]) List<String> detailedLog,
+    String? sessionId,
+    String? statusMessage,
   }) = _GameState;
   
   factory GameState.fromJson(Map<String, dynamic> json) => 

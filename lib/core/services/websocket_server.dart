@@ -19,11 +19,15 @@ class WebSocketServerService {
 
   /// Start WebSocket server
   Future<void> start(int port) async {
-    final handler = webSocketHandler((WebSocketChannel webSocket, String? protocol) {
-      _connectionController.add(WebSocketConnection(webSocket, 'unknown'));
-    });
+    try {
+      final handler = webSocketHandler((WebSocketChannel webSocket, String? protocol) {
+        _connectionController.add(WebSocketConnection(webSocket, 'unknown'));
+      });
 
-    _server = await io.serve(handler, InternetAddress.anyIPv4, port);
+      _server = await io.serve(handler, InternetAddress.anyIPv4, port);
+    } catch (e) {
+      throw Exception('Failed to start WebSocket server on port $port: $e');
+    }
   }
 
   /// Stop server

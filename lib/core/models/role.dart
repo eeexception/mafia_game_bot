@@ -6,6 +6,9 @@ enum RoleType {
   doctor,
   prostitute,
   maniac,
+  sergeant,
+  lawyer,
+  poisoner,
 }
 
 /// Factions players belong to
@@ -111,4 +114,43 @@ class ManiacRole extends Role {
   @override
   String getDisplayName(Map<String, String> themeNames) =>
       themeNames['maniac'] ?? 'Maniac';
+}
+
+/// Sergeant role: Assistant to the Commissar
+class SergeantRole extends Role {
+  const SergeantRole() : super(
+    type: RoleType.sergeant,
+    faction: Faction.town,
+    hasNightAction: true,
+  );
+  
+  @override
+  String getDisplayName(Map<String, String> themeNames) =>
+      themeNames['sergeant'] ?? 'Sergeant';
+}
+
+/// Lawyer role: Mafia investigation role
+class LawyerRole extends Role {
+  const LawyerRole() : super(
+    type: RoleType.lawyer,
+    faction: Faction.mafia,
+    hasNightAction: true,
+  );
+  
+  @override
+  String getDisplayName(Map<String, String> themeNames) =>
+      themeNames['lawyer'] ?? 'Lawyer';
+}
+
+/// Poisoner role: Neutral role with delayed kill
+class PoisonerRole extends Role {
+  const PoisonerRole() : super(
+    type: RoleType.poisoner,
+    faction: Faction.neutral,
+    hasNightAction: true,
+  );
+  
+  @override
+  String getDisplayName(Map<String, String> themeNames) =>
+      themeNames['poisoner'] ?? 'Poisoner';
 }

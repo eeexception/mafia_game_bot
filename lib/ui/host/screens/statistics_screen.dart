@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/state/providers.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
@@ -9,6 +10,8 @@ class StatisticsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final storage = ref.watch(storageServiceProvider);
     
+    final l10n = AppLocalizations.of(context)!;
+    
     final gamesPlayed = storage.getStat('games_played', defaultValue: 0);
     final winsTown = storage.getStat('wins_town', defaultValue: 0);
     final winsMafia = storage.getStat('wins_mafia', defaultValue: 0);
@@ -16,7 +19,7 @@ class StatisticsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GAME STATISTICS'),
+        title: Text(l10n.gameStatistics),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -32,11 +35,11 @@ class StatisticsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildStatRow('TOTAL GAMES PLAYED', '$gamesPlayed'),
+              _buildStatRow(l10n.totalGamesPlayed, '$gamesPlayed'),
               const Divider(height: 48, color: Colors.white10),
-              _buildStatRow('TOWN WINS', '$winsTown', color: Colors.blueAccent),
-              _buildStatRow('MAFIA WINS', '$winsMafia', color: Colors.redAccent),
-              _buildStatRow('MANIAC WINS', '$winsNeutral', color: Colors.purpleAccent),
+              _buildStatRow(l10n.townWins, '$winsTown', color: Colors.blueAccent),
+              _buildStatRow(l10n.mafiaWins, '$winsMafia', color: Colors.redAccent),
+              _buildStatRow(l10n.maniacWins, '$winsNeutral', color: Colors.purpleAccent),
               const SizedBox(height: 48),
               ElevatedButton(
                 onPressed: () async {
@@ -49,7 +52,7 @@ class StatisticsScreen extends ConsumerWidget {
                   backgroundColor: Colors.red.withValues(alpha: 0.2),
                   foregroundColor: Colors.redAccent,
                 ),
-                child: const Text('RESET ALL STATISTICS'),
+                child: Text(l10n.resetAllStatistics),
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mafia_game/core/controllers/game_controller.dart';
 import 'package:mafia_game/core/controllers/audio_controller.dart';
 import 'package:mafia_game/core/controllers/websocket_controller.dart';
+import 'package:mafia_game/core/controllers/theme_controller.dart';
 import 'package:mafia_game/core/controllers/win_detector.dart';
 import 'package:mafia_game/core/services/game_logger.dart';
 import 'package:mafia_game/core/services/storage_service.dart';
@@ -10,7 +11,6 @@ import 'package:mafia_game/core/models/role.dart';
 import 'package:mafia_game/core/models/player.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:mafia_game/core/controllers/win_detector.dart';
 
 import 'package:mafia_game/core/state/game_state_notifier.dart';
 import 'package:mafia_game/core/models/game_state.dart';
@@ -19,7 +19,7 @@ import 'package:mafia_game/core/models/player_action.dart';
 
 import 'game_controller_test.mocks.dart';
 
-@GenerateMocks([AudioController, WebSocketController, WinDetector, GameLogger, StorageService])
+@GenerateMocks([AudioController, WebSocketController, WinDetector, GameLogger, StorageService, ThemeController])
 void main() {
   group('GameController', () {
     late GameController controller;
@@ -28,6 +28,7 @@ void main() {
     late MockWinDetector mockWin;
     late MockGameLogger mockLogger;
     late MockStorageService mockStorage;
+    late MockThemeController mockTheme;
     late GameStateNotifier stateNotifier;
 
     setUp(() {
@@ -36,6 +37,7 @@ void main() {
       mockWin = MockWinDetector();
       mockLogger = MockGameLogger();
       mockStorage = MockStorageService();
+      mockTheme = MockThemeController();
       stateNotifier = GameStateNotifier();
       
       controller = GameController(
@@ -45,14 +47,29 @@ void main() {
         gameLogger: mockLogger,
         stateNotifier: stateNotifier,
         storageService: mockStorage,
+        themeController: mockTheme,
       );
+
+      // Default stubs for audio to avoid MissingStubError
+      when(mockAudio.playEvent(any)).thenAnswer((_) async => 'Test text');
+      when(mockAudio.playCompositeEvent(any)).thenAnswer((_) async => 'Test text');
+      
+      when(mockLogger.detailedLog).thenReturn([]);
+      when(mockLogger.publicLog).thenReturn([]);
     });
 
     test('distributeRoles returns correct number of roles', () {
       const config = GameConfig(themeId: 'test');
-      final roles = controller.distributeRoles(8, config);
-      expect(roles.length, equals(8));
-      expect(roles.whereType<MafiaRole>().length, equals(2)); 
+      
+      final roles8 = controller.distributeRoles(8, config);
+      expect(roles8.length, equals(8));
+      expect(roles8.whereType<MafiaRole>().length, equals(2)); 
+
+      final roles3 = controller.distributeRoles(3, config);
+      expect(roles3.length, equals(3));
+      expect(roles3.whereType<MafiaRole>().length, equals(1));
+      expect(roles3.whereType<CommissarRole>().length, equals(1));
+      expect(roles3.whereType<CivilianRole>().length, equals(1));
     });
     
     test('addPlayer updates state', () {
@@ -65,23 +82,11 @@ void main() {
       controller.addPlayer(player);
       expect(stateNotifier.currentState.players.length, 1);
     });
-    test('checkWinCondition triggers audio on win', () {
-      // Arrange
-      // Setup state with some players
+    test('checkWinCondition triggers audio on win', () async {
       final players = [
         Player(id: 'p1', number: 1, nickname: 'P1', role: const MafiaRole(), isAlive: true),
         Player(id: 'p2', number: 2, nickname: 'P2', role: const CivilianRole(), isAlive: false), // Dead civ
       ];
-      
-      // Inject state
-      // We can't set _state directly easily as it is private setter via stateNotifier, 
-      // but we can assume controller uses stateNotifier.currentState.
-      // We need to use reflection or just call a method that updates state.
-      // `startGame` updates state. Or `addPlayer`.
-      // Actually `stateNotifier` is accessible in test.
-      // But GameController uses `stateNotifier.currentState` getter.
-      // We can brute force update by `stateNotifier.updateState(...)` if GameController reads from it.
-      // GameController constructor takes `stateNotifier`.
       
       stateNotifier.updateState(GameState(players: players, phase: GamePhase.dayVerdict, config: const GameConfig(themeId: 'default')));
 
@@ -90,7 +95,7 @@ void main() {
 
       // Act
       // advancePhase triggers checkWinCondition at the end
-      controller.advancePhase();
+      await controller.advancePhase();
 
       // Assert
       verify(mockAudio.playEvent('mafia_win')).called(1);

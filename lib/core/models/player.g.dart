@@ -14,6 +14,8 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   isAlive: json['isAlive'] as bool? ?? true,
   isConnected: json['isConnected'] as bool? ?? true,
   isReadyToVote: json['isReadyToVote'] as bool? ?? false,
+  hasActed: json['hasActed'] as bool? ?? false,
+  isPoisoned: json['isPoisoned'] as bool? ?? false,
   sessionToken: json['sessionToken'] as String?,
   lastHeartbeat: json['lastHeartbeat'] == null
       ? null
@@ -28,6 +30,8 @@ Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
   'isAlive': instance.isAlive,
   'isConnected': instance.isConnected,
   'isReadyToVote': instance.isReadyToVote,
+  'hasActed': instance.hasActed,
+  'isPoisoned': instance.isPoisoned,
   'sessionToken': instance.sessionToken,
   'lastHeartbeat': instance.lastHeartbeat?.toIso8601String(),
 };

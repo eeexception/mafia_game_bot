@@ -32,6 +32,40 @@ The system consists of two primary components:
 *   **Mobile-First Client UI**: Dark mode optimized to minimize screen glow during night phases, featuring press-to-reveal role cards and WakeLock support.
 *   **Log Management**: Comprehensive public logs during the game and detailed secret logs (role actions, votes) exportable as `.txt` after completion.
 
+## 🎭 Roles & Factions
+
+### Civilian Faction (Town)
+*   **Civilian**: The majority of the town. Goal: Identify and execute all Mafia and the Maniac.
+*   **Commissar (Detective)**: Each night, investigates one player to see if they are Mafia.
+*   **Sergeant**: Assistant to the Commissar. Receives investigation results and takes over if the Commissar dies.
+*   **Doctor**: Each night, selects one player to heal. If that player is attacked, they survive.
+
+### Mafia Faction
+*   **Mafia**: Each night, the team votes on a victim. 
+*   **Don (Leader)**: The head of the Mafia. If "Don Mechanics" is on, the Don has exclusive authority to choose the kill target. If the Don dies, the role is automatically transferred to another random living Mafia member. The Don no longer performs investigations; that responsibility falls to the Lawyer.
+*   **Lawyer**: Mafia's spy. Each night, investigates a player to see if they are an active Town role (Commissar/Sergeant).
+
+### Neutral Roles
+*   **Maniac**: A solo killer. Wins by being the last survivor or reaching a 1v1 state with any civilian.
+*   **Poisoner (Likho)**: A neutral role with a high-risk trap. When the Poisoner "visits" a target, they leave a toxin. The target dies immediately, and anyone else who interacts with that target (Heal, Check, Block) also dies.
+
+---
+
+## ⚙️ Game Settings
+
+### Role Toggles
+*   **Commissar/Doctor/Prostitute/Maniac/Sergeant/Lawyer/Poisoner**: Enable or disable specific roles. Even core roles like the Commissar and Doctor can now be toggled off for specific game variants.
+*   **Auto-pruning Roles**: 
+    *   *ON (Default)*: Roles are skipped if player count is too low (e.g. Maniac needs 9+). Hints in setup.
+    *   *OFF*: Forced inclusion of toggled roles.
+*   **Don Mechanics**: 
+    *   *ON*: Don controls kills. Lawyer investigates.
+    *   *OFF*: Mafia shoots by consensus (100% agreement required).
+*   **Commissar Can Kill**: In this mode, the Commissar (and Sergeant) perform kills instead of investigations.
+*   **Vote Early**: In the Day Discussion, if all living players press "Ready to Vote", the timer skips to the voting phase.
+
+---
+
 ## 📂 Project Structure
 
 Following a strict **MVC + Clean Architecture** pattern:

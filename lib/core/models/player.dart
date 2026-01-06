@@ -16,6 +16,8 @@ abstract class Player with _$Player {
     @Default(true) bool isAlive,
     @Default(true) bool isConnected,
     @Default(false) bool isReadyToVote,
+    @Default(false) bool hasActed,
+    @Default(false) bool isPoisoned,
     String? sessionToken,
     DateTime? lastHeartbeat,
   }) = _Player;

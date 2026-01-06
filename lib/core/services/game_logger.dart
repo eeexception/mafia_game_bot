@@ -18,10 +18,11 @@ class GameLogger {
   }
 
   /// Add detailed event (hidden until game end)
-  void logDetailed(String message) {
+  void logDetailed(String message, {int level = 800}) {
     final timestamp = DateTime.now().toIso8601String().substring(11, 19);
     final entry = '[$timestamp] $message';
     _detailedLog.add('[SECRET] $entry');
+    developer.log(message, level: level);
   }
 
   /// Export logs to a .txt file

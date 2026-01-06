@@ -9,8 +9,10 @@ abstract class ThemeConfig with _$ThemeConfig {
     required String id,
     required String name,
     required String author,
+    @Default('en') String locale,
+    required String basePath,
     required Map<String, String> roles,
-    required Map<String, List<String>> eventAudio,
+    required Map<String, List<AudioVariant>> eventAudio,
     required Map<String, String> backgroundAudio,
     @Default(1.0) double announcementVolume,
     @Default(0.1) double backgroundDuckVolume,
@@ -22,11 +24,23 @@ abstract class ThemeConfig with _$ThemeConfig {
 }
 
 @freezed
+abstract class AudioVariant with _$AudioVariant {
+  const factory AudioVariant({
+    required String file,
+    String? text,
+  }) = _AudioVariant;
+
+  factory AudioVariant.fromJson(Map<String, dynamic> json) =>
+      _$AudioVariantFromJson(json);
+}
+
+@freezed
 abstract class ThemeMeta with _$ThemeMeta {
   const factory ThemeMeta({
     required String id,
     required String name,
     required String author,
+    @Default('en') String locale,
   }) = _ThemeMeta;
 
   factory ThemeMeta.fromJson(Map<String, dynamic> json) =>

@@ -17,7 +17,7 @@ mixin _$Player {
 
  String get id;// Device UUID
  int get number;// Connection order (1-indexed)
- String get nickname;@RoleConverter() Role get role; bool get isAlive; bool get isConnected; bool get isReadyToVote; String? get sessionToken; DateTime? get lastHeartbeat;
+ String get nickname;@RoleConverter() Role get role; bool get isAlive; bool get isConnected; bool get isReadyToVote; bool get hasActed; bool get isPoisoned; String? get sessionToken; DateTime? get lastHeartbeat;
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +30,16 @@ $PlayerCopyWith<Player> get copyWith => _$PlayerCopyWithImpl<Player>(this as Pla
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.number, number) || other.number == number)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.role, role) || other.role == role)&&(identical(other.isAlive, isAlive) || other.isAlive == isAlive)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isReadyToVote, isReadyToVote) || other.isReadyToVote == isReadyToVote)&&(identical(other.sessionToken, sessionToken) || other.sessionToken == sessionToken)&&(identical(other.lastHeartbeat, lastHeartbeat) || other.lastHeartbeat == lastHeartbeat));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.number, number) || other.number == number)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.role, role) || other.role == role)&&(identical(other.isAlive, isAlive) || other.isAlive == isAlive)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isReadyToVote, isReadyToVote) || other.isReadyToVote == isReadyToVote)&&(identical(other.hasActed, hasActed) || other.hasActed == hasActed)&&(identical(other.isPoisoned, isPoisoned) || other.isPoisoned == isPoisoned)&&(identical(other.sessionToken, sessionToken) || other.sessionToken == sessionToken)&&(identical(other.lastHeartbeat, lastHeartbeat) || other.lastHeartbeat == lastHeartbeat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,number,nickname,role,isAlive,isConnected,isReadyToVote,sessionToken,lastHeartbeat);
+int get hashCode => Object.hash(runtimeType,id,number,nickname,role,isAlive,isConnected,isReadyToVote,hasActed,isPoisoned,sessionToken,lastHeartbeat);
 
 @override
 String toString() {
-  return 'Player(id: $id, number: $number, nickname: $nickname, role: $role, isAlive: $isAlive, isConnected: $isConnected, isReadyToVote: $isReadyToVote, sessionToken: $sessionToken, lastHeartbeat: $lastHeartbeat)';
+  return 'Player(id: $id, number: $number, nickname: $nickname, role: $role, isAlive: $isAlive, isConnected: $isConnected, isReadyToVote: $isReadyToVote, hasActed: $hasActed, isPoisoned: $isPoisoned, sessionToken: $sessionToken, lastHeartbeat: $lastHeartbeat)';
 }
 
 
@@ -50,7 +50,7 @@ abstract mixin class $PlayerCopyWith<$Res>  {
   factory $PlayerCopyWith(Player value, $Res Function(Player) _then) = _$PlayerCopyWithImpl;
 @useResult
 $Res call({
- String id, int number, String nickname,@RoleConverter() Role role, bool isAlive, bool isConnected, bool isReadyToVote, String? sessionToken, DateTime? lastHeartbeat
+ String id, int number, String nickname,@RoleConverter() Role role, bool isAlive, bool isConnected, bool isReadyToVote, bool hasActed, bool isPoisoned, String? sessionToken, DateTime? lastHeartbeat
 });
 
 
@@ -67,7 +67,7 @@ class _$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? number = null,Object? nickname = null,Object? role = null,Object? isAlive = null,Object? isConnected = null,Object? isReadyToVote = null,Object? sessionToken = freezed,Object? lastHeartbeat = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? number = null,Object? nickname = null,Object? role = null,Object? isAlive = null,Object? isConnected = null,Object? isReadyToVote = null,Object? hasActed = null,Object? isPoisoned = null,Object? sessionToken = freezed,Object? lastHeartbeat = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
@@ -76,6 +76,8 @@ as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non
 as Role,isAlive: null == isAlive ? _self.isAlive : isAlive // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,isReadyToVote: null == isReadyToVote ? _self.isReadyToVote : isReadyToVote // ignore: cast_nullable_to_non_nullable
+as bool,hasActed: null == hasActed ? _self.hasActed : hasActed // ignore: cast_nullable_to_non_nullable
+as bool,isPoisoned: null == isPoisoned ? _self.isPoisoned : isPoisoned // ignore: cast_nullable_to_non_nullable
 as bool,sessionToken: freezed == sessionToken ? _self.sessionToken : sessionToken // ignore: cast_nullable_to_non_nullable
 as String?,lastHeartbeat: freezed == lastHeartbeat ? _self.lastHeartbeat : lastHeartbeat // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  String? sessionToken,  DateTime? lastHeartbeat)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  bool hasActed,  bool isPoisoned,  String? sessionToken,  DateTime? lastHeartbeat)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.sessionToken,_that.lastHeartbeat);case _:
+return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.hasActed,_that.isPoisoned,_that.sessionToken,_that.lastHeartbeat);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  String? sessionToken,  DateTime? lastHeartbeat)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  bool hasActed,  bool isPoisoned,  String? sessionToken,  DateTime? lastHeartbeat)  $default,) {final _that = this;
 switch (_that) {
 case _Player():
-return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.sessionToken,_that.lastHeartbeat);case _:
+return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.hasActed,_that.isPoisoned,_that.sessionToken,_that.lastHeartbeat);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +206,10 @@ return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  String? sessionToken,  DateTime? lastHeartbeat)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  int number,  String nickname, @RoleConverter()  Role role,  bool isAlive,  bool isConnected,  bool isReadyToVote,  bool hasActed,  bool isPoisoned,  String? sessionToken,  DateTime? lastHeartbeat)?  $default,) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.sessionToken,_that.lastHeartbeat);case _:
+return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_that.isConnected,_that.isReadyToVote,_that.hasActed,_that.isPoisoned,_that.sessionToken,_that.lastHeartbeat);case _:
   return null;
 
 }
@@ -219,7 +221,7 @@ return $default(_that.id,_that.number,_that.nickname,_that.role,_that.isAlive,_t
 @JsonSerializable()
 
 class _Player implements Player {
-  const _Player({required this.id, required this.number, required this.nickname, @RoleConverter() required this.role, this.isAlive = true, this.isConnected = true, this.isReadyToVote = false, this.sessionToken, this.lastHeartbeat});
+  const _Player({required this.id, required this.number, required this.nickname, @RoleConverter() required this.role, this.isAlive = true, this.isConnected = true, this.isReadyToVote = false, this.hasActed = false, this.isPoisoned = false, this.sessionToken, this.lastHeartbeat});
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String id;
@@ -231,6 +233,8 @@ class _Player implements Player {
 @override@JsonKey() final  bool isAlive;
 @override@JsonKey() final  bool isConnected;
 @override@JsonKey() final  bool isReadyToVote;
+@override@JsonKey() final  bool hasActed;
+@override@JsonKey() final  bool isPoisoned;
 @override final  String? sessionToken;
 @override final  DateTime? lastHeartbeat;
 
@@ -247,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.number, number) || other.number == number)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.role, role) || other.role == role)&&(identical(other.isAlive, isAlive) || other.isAlive == isAlive)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isReadyToVote, isReadyToVote) || other.isReadyToVote == isReadyToVote)&&(identical(other.sessionToken, sessionToken) || other.sessionToken == sessionToken)&&(identical(other.lastHeartbeat, lastHeartbeat) || other.lastHeartbeat == lastHeartbeat));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.number, number) || other.number == number)&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.role, role) || other.role == role)&&(identical(other.isAlive, isAlive) || other.isAlive == isAlive)&&(identical(other.isConnected, isConnected) || other.isConnected == isConnected)&&(identical(other.isReadyToVote, isReadyToVote) || other.isReadyToVote == isReadyToVote)&&(identical(other.hasActed, hasActed) || other.hasActed == hasActed)&&(identical(other.isPoisoned, isPoisoned) || other.isPoisoned == isPoisoned)&&(identical(other.sessionToken, sessionToken) || other.sessionToken == sessionToken)&&(identical(other.lastHeartbeat, lastHeartbeat) || other.lastHeartbeat == lastHeartbeat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,number,nickname,role,isAlive,isConnected,isReadyToVote,sessionToken,lastHeartbeat);
+int get hashCode => Object.hash(runtimeType,id,number,nickname,role,isAlive,isConnected,isReadyToVote,hasActed,isPoisoned,sessionToken,lastHeartbeat);
 
 @override
 String toString() {
-  return 'Player(id: $id, number: $number, nickname: $nickname, role: $role, isAlive: $isAlive, isConnected: $isConnected, isReadyToVote: $isReadyToVote, sessionToken: $sessionToken, lastHeartbeat: $lastHeartbeat)';
+  return 'Player(id: $id, number: $number, nickname: $nickname, role: $role, isAlive: $isAlive, isConnected: $isConnected, isReadyToVote: $isReadyToVote, hasActed: $hasActed, isPoisoned: $isPoisoned, sessionToken: $sessionToken, lastHeartbeat: $lastHeartbeat)';
 }
 
 
@@ -267,7 +271,7 @@ abstract mixin class _$PlayerCopyWith<$Res> implements $PlayerCopyWith<$Res> {
   factory _$PlayerCopyWith(_Player value, $Res Function(_Player) _then) = __$PlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, int number, String nickname,@RoleConverter() Role role, bool isAlive, bool isConnected, bool isReadyToVote, String? sessionToken, DateTime? lastHeartbeat
+ String id, int number, String nickname,@RoleConverter() Role role, bool isAlive, bool isConnected, bool isReadyToVote, bool hasActed, bool isPoisoned, String? sessionToken, DateTime? lastHeartbeat
 });
 
 
@@ -284,7 +288,7 @@ class __$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? number = null,Object? nickname = null,Object? role = null,Object? isAlive = null,Object? isConnected = null,Object? isReadyToVote = null,Object? sessionToken = freezed,Object? lastHeartbeat = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? number = null,Object? nickname = null,Object? role = null,Object? isAlive = null,Object? isConnected = null,Object? isReadyToVote = null,Object? hasActed = null,Object? isPoisoned = null,Object? sessionToken = freezed,Object? lastHeartbeat = freezed,}) {
   return _then(_Player(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
@@ -293,6 +297,8 @@ as String,role: null == role ? _self.role : role // ignore: cast_nullable_to_non
 as Role,isAlive: null == isAlive ? _self.isAlive : isAlive // ignore: cast_nullable_to_non_nullable
 as bool,isConnected: null == isConnected ? _self.isConnected : isConnected // ignore: cast_nullable_to_non_nullable
 as bool,isReadyToVote: null == isReadyToVote ? _self.isReadyToVote : isReadyToVote // ignore: cast_nullable_to_non_nullable
+as bool,hasActed: null == hasActed ? _self.hasActed : hasActed // ignore: cast_nullable_to_non_nullable
+as bool,isPoisoned: null == isPoisoned ? _self.isPoisoned : isPoisoned // ignore: cast_nullable_to_non_nullable
 as bool,sessionToken: freezed == sessionToken ? _self.sessionToken : sessionToken // ignore: cast_nullable_to_non_nullable
 as String?,lastHeartbeat: freezed == lastHeartbeat ? _self.lastHeartbeat : lastHeartbeat // ignore: cast_nullable_to_non_nullable
 as DateTime?,

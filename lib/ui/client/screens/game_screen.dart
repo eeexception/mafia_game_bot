@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../../core/state/providers.dart';
 import '../../../core/models/game_state.dart';
 import '../../../core/models/player.dart';
 import '../../../core/models/game_phase.dart';
 import '../../../core/models/role.dart';
+import '../widgets/phase_header.dart';
+import '../widgets/role_viewer.dart';
+import '../widgets/voting_grid.dart';
+import '../widgets/verdict_panel.dart';
+import '../widgets/night_action_panel.dart';
+import 'connection_screen.dart';
+import 'victory_screen.dart';
 
 class ClientGameScreen extends ConsumerStatefulWidget {
   const ClientGameScreen({super.key});
@@ -14,7 +22,9 @@ class ClientGameScreen extends ConsumerStatefulWidget {
 }
 
 class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
-  bool _roleVisible = false;
+  String? _selectedTargetId;
+  String? _selectedDonTargetId;
+  Map<String, String> _mafiaVotes = {}; // performerId -> targetId
 
   @override
   void initState() {
@@ -22,12 +32,12 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
     // Enable WakeLock to prevent screen from sleeping during the game
     ref.read(wakeLockServiceProvider).enable();
 
-    // Listen for commissar check results
+    // Listen for commissar check results and mafia sync
     ref.read(webSocketClientServiceProvider).messages.listen((msg) {
       if (msg['type'] == 'check_result') {
         final isMafia = msg['is_mafia'] as bool;
         final targetId = msg['target_id'] as String;
-        final target = ref.read(clientGameStateProvider)?.players.firstWhere((p) => p.id == targetId);
+        final target = ref.read(clientGameStateProvider)?.players.firstWhereOrNull((p) => p.id == targetId);
         
         if (mounted && target != null) {
           showDialog(
@@ -55,8 +65,127 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
             ),
           );
         }
+      } else if (msg['type'] == 'lawyer_check_result') {
+        final isActiveTown = msg['is_active_town'] as bool;
+        final targetId = msg['target_id'] as String;
+        final target = ref.read(clientGameStateProvider)?.players.firstWhereOrNull((p) => p.id == targetId);
+        
+        if (mounted && target != null) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: Colors.purple.shade900,
+              title: const Text('LAWYER INVESTIGATION'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   CircleAvatar(child: Text('${target.number}')),
+                   const SizedBox(height: 16),
+                   Text('${target.nickname} is ${isActiveTown ? "AN ACTIVE TOWN ROLE" : "NOT AN ACTIVE TOWN ROLE"}', 
+                    style: TextStyle(
+                      fontSize: 18, 
+                      fontWeight: FontWeight.bold, 
+                      color: isActiveTown ? Colors.amberAccent : Colors.white70
+                    ),
+                    textAlign: TextAlign.center,
+                   ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+              ],
+            ),
+          );
+        }
+      } else if (msg['type'] == 'don_check_result') {
+        final isCommissar = msg['is_commissar'] as bool;
+        final targetId = msg['target_id'] as String;
+        final target = ref.read(clientGameStateProvider)?.players.firstWhereOrNull((p) => p.id == targetId);
+        
+        if (mounted && target != null) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: Colors.red.shade900,
+              title: const Text('DON INVESTIGATION'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   CircleAvatar(child: Text('${target.number}')),
+                   const SizedBox(height: 16),
+                   Text('${target.nickname} is ${isCommissar ? "COMMISSAR!" : "NOT COMMISSAR"}', 
+                    style: TextStyle(
+                      fontSize: 20, 
+                      fontWeight: FontWeight.bold, 
+                      color: isCommissar ? Colors.amberAccent : Colors.white70
+                    ),
+                   ),
+                ],
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+              ],
+            ),
+          );
+        }
+      } else if (msg['type'] == 'team_votes_update' || msg['type'] == 'mafia_sync_update') {
+        final votesMap = msg['votes'] as Map<String, dynamic>;
+        final newVotes = <String, String>{};
+        votesMap.forEach((key, value) {
+            newVotes[key] = value as String;
+        });
+        if (mounted) {
+          setState(() {
+            _mafiaVotes = newVotes;
+          });
+        }
       }
     });
+
+    // Clear selection on phase change or if player dies
+    ref.listenManual(clientGameStateProvider, (previous, next) {
+      if (next == null) return;
+      final playerId = ref.read(clientPlayerIdProvider);
+      if (playerId == null) return;
+      
+      final me = next.players.firstWhereOrNull((p) => p.id == playerId);
+      final prevMe = previous?.players.firstWhereOrNull((p) => p.id == playerId);
+
+      // Transition to Victory Screen
+      if (previous?.phase != GamePhase.gameOver && next.phase == GamePhase.gameOver) {
+        _recordPersonalStats(next, playerId);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ClientVictoryScreen()),
+        );
+      }
+      
+      if (previous?.phase != next.phase || (prevMe?.isAlive == true && me?.isAlive == false)) {
+        setState(() {
+          _selectedTargetId = null;
+          _selectedDonTargetId = null;
+          _mafiaVotes = {};
+        });
+      }
+    });
+  }
+
+  void _recordPersonalStats(GameState state, String myId) {
+    final storage = ref.read(storageServiceProvider);
+    final winDetector = ref.read(winDetectorProvider);
+    final winResult = winDetector.checkWinCondition(state.players);
+    if (winResult == null) return;
+
+    final me = state.players.firstWhereOrNull((p) => p.id == myId);
+    if (me == null) return;
+
+    // Increment games played
+    storage.incrementStat('personal_games_played');
+
+    // Check if I won
+    final myFaction = me.role.faction;
+    if (myFaction == winResult.winner) {
+      storage.incrementStat('personal_games_won');
+    }
   }
 
   @override
@@ -71,6 +200,15 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
     final gameState = ref.watch(clientGameStateProvider);
     final playerId = ref.watch(clientPlayerIdProvider);
 
+    // Watch for phase changes to automatically return to lobby
+    ref.listen(gameStateProvider.select((s) => s.phase), (previous, next) {
+      if (next == GamePhase.lobby) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WaitingScreen()),
+        );
+      }
+    });
+
     if (gameState == null || playerId == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -78,107 +216,69 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
     final me = gameState.players.firstWhere((p) => p.id == playerId);
     final isNight = gameState.phase.name.contains('night');
 
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isNight 
-              ? [Colors.indigo.shade900, Colors.black] 
-              : [Colors.blueGrey.shade900, Colors.black],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(me, gameState),
-              const Spacer(),
-              if (me.isAlive) _buildRoleViewer(me),
-              if (!me.isAlive) _buildDeadMessage(),
-              const Spacer(),
-              if (me.isAlive) _buildActionPanel(context, me, gameState),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(Player me, GameState state) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.amber,
-            radius: 24,
-            child: Text(
-              '${me.number}', 
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)
-            ),
-          ),
-          Column(
-            children: [
-              Text(
-                state.phase.name.toUpperCase().replaceAll('_', ' '),
-                style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, fontSize: 16),
-              ),
-              if (state.timerSecondsRemaining != null)
-                Text(
-                  '${state.timerSecondsRemaining}s', 
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.amber)
-                ),
-            ],
-          ),
-          const Opacity(
-            opacity: 0.3,
-            child: Icon(Icons.settings, color: Colors.white, size: 32),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleViewer(Player me) {
-    return Column(
+    return Stack(
       children: [
-        GestureDetector(
-          onLongPressStart: (_) => setState(() => _roleVisible = true),
-          onLongPressEnd: (_) => setState(() => _roleVisible = false),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.all(48),
+        Scaffold(
+          body: Container(
             decoration: BoxDecoration(
-              color: _roleVisible ? Colors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: _roleVisible ? Colors.amber : Colors.white24, 
-                width: 3
+              gradient: LinearGradient(
+                colors: isNight 
+                  ? [Colors.indigo.shade900, Colors.black] 
+                  : [Colors.blueGrey.shade900, Colors.black],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              boxShadow: _roleVisible ? [
-                BoxShadow(color: Colors.amber.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 5)
-              ] : [],
             ),
-            child: Icon(
-              _roleVisible ? Icons.visibility : Icons.visibility_off,
-              size: 80,
-              color: _roleVisible ? Colors.amber : Colors.white38,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  PhaseHeader(me: me, state: gameState),
+                  const Spacer(),
+                  if (me.isAlive) RoleViewer(me: me),
+                  if (!me.isAlive) _buildDeadMessage(),
+                  const Spacer(),
+                  if (me.isAlive) _buildActionPanel(context, me, gameState),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        Text(
-          _roleVisible ? me.role.name.toUpperCase() : 'PRESS AND HOLD TO REVEAL ROLE',
-          style: TextStyle(
-            fontSize: 20, 
-            fontWeight: FontWeight.bold, 
-            color: _roleVisible ? Colors.amber : Colors.white54,
-            letterSpacing: 2,
+        if (gameState.isPaused)
+          Positioned.fill(
+            child: AbsorbPointer(
+              child: Container(
+                color: Colors.black87,
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.pause_circle_filled, color: Colors.amber, size: 80),
+                      SizedBox(height: 16),
+                      Text(
+                        'GAME PAUSED',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.amber,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'WAITING FOR HOST...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white54,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -202,184 +302,230 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
   }
 
   Widget _buildActionPanel(BuildContext context, Player me, GameState state) {
+    String? currentActionType;
     if (state.phase == GamePhase.dayVoting) {
-       return _buildVotingGrid(me, state);
-    }
-    
-    if (state.phase.name.contains('night')) {
-        return _buildNightActionPanel(me, state);
+      currentActionType = 'vote';
+    } else if (state.phase == GamePhase.nightMafia && me.role.type == RoleType.mafia) {
+      currentActionType = 'mafia_kill';
+    } else if (state.phase == GamePhase.nightProstitute && me.role.type == RoleType.prostitute) {
+      currentActionType = 'prostitute_block';
+    } else if (state.phase == GamePhase.nightManiac && me.role.type == RoleType.maniac) {
+      currentActionType = 'maniac_kill';
+    } else if (state.phase == GamePhase.nightDoctor && me.role.type == RoleType.doctor) {
+      currentActionType = 'doctor_heal';
+    } else if (state.phase == GamePhase.nightCommissar && me.role.type == RoleType.commissar) {
+      currentActionType = state.config.commissarKills ? 'commissar_kill' : 'commissar_check';
+    } else if (state.phase == GamePhase.dayVerdict) {
+      currentActionType = 'verdict';
     }
 
-    if (state.phase == GamePhase.dayDiscussion) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              'LEAD THE DISCUSSION...', 
-              style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => _sendAction('ready_to_vote'),
-              icon: Icon(
-                me.isReadyToVote ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
-              ),
-              label: Text(
-                me.isReadyToVote ? 'READY TO VOTE' : 'VOTE EARLY?',
-                style: TextStyle(
-                  color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
-                  fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        children: [
+          if (state.phase == GamePhase.roleReveal)
+            Column(
+              children: [
+                const Text(
+                  'VIEW YOUR ROLE ABOVE', 
+                  style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  side: BorderSide(
-                    color: me.isReadyToVote ? Colors.greenAccent : Colors.white24,
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => _sendAction('toggle_ready'),
+                  icon: Icon(
+                    me.isReadyToVote ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
+                  ),
+                  label: Text(
+                    me.isReadyToVote ? 'READY' : 'GO TO NIGHT?',
+                    style: TextStyle(
+                      color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: BorderSide(
+                        color: me.isReadyToVote ? Colors.greenAccent : Colors.white24,
+                      ),
+                    ),
                   ),
                 ),
+              ],
+            ),
+          if (state.phase == GamePhase.dayVoting) 
+            VotingGrid(
+              me: me, 
+              state: state, 
+              selectedTargetId: _selectedTargetId, 
+              onTargetSelected: (id) => setState(() => _selectedTargetId = id),
+            ),
+          if (state.phase == GamePhase.dayVerdict) 
+            VerdictPanel(
+              me: me, 
+              state: state, 
+              selectedTargetId: _selectedTargetId, 
+              onTargetSelected: (id) => setState(() => _selectedTargetId = id),
+            ),
+          if (state.phase.name.toLowerCase().contains('night')) 
+            NightActionPanel(
+              me: me, 
+              state: state, 
+              selectedTargetId: _selectedTargetId, 
+              selectedDonTargetId: _selectedDonTargetId, 
+              mafiaVotes: _mafiaVotes, 
+              onTargetSelected: (id) {
+                if (id == 'commissar_ready_signal') {
+                  _sendAction('commissar_ready');
+                } else {
+                  setState(() => _selectedTargetId = id);
+                }
+              },
+              onDonTargetSelected: (id) => setState(() => _selectedDonTargetId = id),
+            ),
+          
+          if (state.phase == GamePhase.dayDiscussion) 
+            Column(
+              children: [
+                const Text(
+                  'LEAD THE DISCUSSION...', 
+                  style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () => _sendAction('ready_to_vote'),
+                  icon: Icon(
+                    me.isReadyToVote ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
+                  ),
+                  label: Text(
+                    me.isReadyToVote ? 'READY TO VOTE' : 'VOTE EARLY?',
+                    style: TextStyle(
+                      color: me.isReadyToVote ? Colors.greenAccent : Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      side: BorderSide(
+                        color: me.isReadyToVote ? Colors.greenAccent : Colors.white24,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+          if (state.phase == GamePhase.dayDefense)
+            Column(
+              children: [
+                if (state.speakerId == me.id) ...[
+                  const Text(
+                    'YOUR DEFENSE SPEECH', 
+                    style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 18)
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => _sendAction('end_speech'),
+                    icon: const Icon(Icons.stop_circle, color: Colors.white),
+                    label: const Text(
+                      'END SPEECH EARLY',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent.withValues(alpha: 0.6),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        side: const BorderSide(color: Colors.redAccent),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  Text(
+                    'WAITING FOR PLAYER #${state.players.firstWhereOrNull((p) => p.id == state.speakerId)?.number ?? "?"}...', 
+                    style: const TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
+                  ),
+                ],
+              ],
+            ),
+
+          if (_selectedTargetId != null && currentActionType != null && !me.hasActed)
+            Padding(
+              padding: const EdgeInsets.only(top: 24.0),
+              child: ElevatedButton(
+                onPressed: () => _sendAction(currentActionType!, targetId: _selectedTargetId),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 8,
+                ),
+                child: const Text('CONFIRM ACTION', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
               ),
             ),
-          ],
-        ),
-      );
-    }
 
-    return Container(
-      padding: const EdgeInsets.all(32),
-      child: const Text(
-        'WAITING...', 
-        style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
+          if (_selectedDonTargetId != null && state.phase == GamePhase.nightMafia && !me.hasActed)
+             Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: ElevatedButton(
+                onPressed: () => _sendAction('don_check', targetId: _selectedDonTargetId),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('CONFIRM DON CHECK', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          
+          if (_selectedTargetId == null && !state.phase.name.toLowerCase().contains('discussion') && !state.phase.name.toLowerCase().contains('defense') && !me.hasActed)
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                state.phase == GamePhase.dayVoting || state.phase == GamePhase.dayVerdict || state.phase.name.contains('night') 
+                  ? 'SELECT A TARGET...' 
+                  : 'WAITING...', 
+                style: const TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
+              ),
+            ),
+          
+          if (me.hasActed && !state.phase.name.toLowerCase().contains('night'))
+            const Padding(
+              padding: EdgeInsets.all(32),
+              child: Column(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.greenAccent, size: 48),
+                  SizedBox(height: 8),
+                  Text('ACTION CONFIRMED', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildVotingGrid(Player me, GameState state) {
-    final alivePlayers = state.players.where((p) => p.isAlive && p.id != me.id).toList();
-    return Column(
-      children: [
-        const Text(
-          'VOTE TO EXECUTE', 
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.redAccent)
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: alivePlayers.length,
-            itemBuilder: (context, index) {
-              final p = alivePlayers[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: InkWell(
-                  onTap: () => _sendAction('vote', targetId: p.id),
-                  child: Container(
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade900.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.shade700),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('${p.number}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        Text(p.nickname, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNightActionPanel(Player me, GameState state) {
-    bool canAct = false;
-    String actionType = '';
-    
-    if (state.phase == GamePhase.nightMafia && me.role is MafiaRole) {
-        canAct = true;
-        actionType = 'mafia_kill';
-    } else if (state.phase == GamePhase.nightProstitute && me.role is ProstituteRole) {
-        canAct = true;
-        actionType = 'prostitute_block';
-    } else if (state.phase == GamePhase.nightManiac && me.role is ManiacRole) {
-        canAct = true;
-        actionType = 'maniac_kill';
-    } else if (state.phase == GamePhase.nightDoctor && me.role is DoctorRole) {
-        canAct = true;
-        actionType = 'doctor_heal';
-    } else if (state.phase == GamePhase.nightCommissar && me.role is CommissarRole) {
-        canAct = true;
-        actionType = 'commissar_check';
-    }
-    
-    if (!canAct) {
-        return const Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text(
-            'THE CITY IS SLEEPING...', 
-            style: TextStyle(color: Colors.white38, fontStyle: FontStyle.italic, fontSize: 18)
-          ),
-        );
-    }
-
-    final targets = state.players.where((p) => p.isAlive && p.id != me.id).toList();
-
-    return Column(
-      children: [
-        Text(
-          actionType.toUpperCase().replaceAll('_', ' '), 
-          style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, letterSpacing: 2)
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: targets.length,
-            itemBuilder: (context, index) {
-              final p = targets[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: InkWell(
-                  onTap: () => _sendAction(actionType, targetId: p.id),
-                  child: Container(
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.indigo.shade900.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.indigo.shade700),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('${p.number}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        Text(p.nickname, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   void _sendAction(String type, {String? targetId}) {
+    final gameState = ref.read(clientGameStateProvider);
+    final playerId = ref.read(clientPlayerIdProvider);
+    if (gameState == null || playerId == null) return;
+    
+    final me = gameState.players.firstWhereOrNull((p) => p.id == playerId);
+    if (me == null || !me.isAlive) {
+      debugPrint('Blocked action $type from dead or invalid player.');
+      return;
+    }
+
     ref.read(webSocketClientServiceProvider).send({
       'type': 'player_action',
       'action': {
@@ -387,13 +533,15 @@ class _ClientGameScreenState extends ConsumerState<ClientGameScreen> {
         'targetId': targetId,
       }
     });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Action $type sent!'),
-        backgroundColor: Colors.amber,
-        duration: const Duration(seconds: 1),
-      )
-    );
+
+    if (mounted && targetId != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Action $type submitted!'),
+          backgroundColor: Colors.amber,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 }

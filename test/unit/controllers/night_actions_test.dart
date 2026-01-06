@@ -3,6 +3,7 @@ import 'package:mafia_game/core/controllers/game_controller.dart';
 import 'package:mafia_game/core/controllers/audio_controller.dart';
 import 'package:mafia_game/core/controllers/websocket_controller.dart';
 import 'package:mafia_game/core/controllers/win_detector.dart';
+import 'package:mafia_game/core/controllers/theme_controller.dart';
 import 'package:mafia_game/core/services/game_logger.dart';
 import 'package:mafia_game/core/models/player.dart';
 import 'package:mafia_game/core/models/role.dart';
@@ -13,7 +14,7 @@ import 'package:mockito/annotations.dart';
 
 import 'night_actions_test.mocks.dart';
 
-@GenerateMocks([AudioController, WebSocketController, WinDetector, GameLogger, StorageService])
+@GenerateMocks([AudioController, WebSocketController, WinDetector, GameLogger, StorageService, ThemeController])
 void main() {
   late GameController gameController;
   late MockAudioController mockAudio;
@@ -21,6 +22,7 @@ void main() {
   late MockWinDetector mockWin;
   late MockGameLogger mockLogger;
   late MockStorageService mockStorage;
+  late MockThemeController mockTheme;
   late GameStateNotifier stateNotifier;
 
   setUp(() {
@@ -29,6 +31,7 @@ void main() {
     mockWin = MockWinDetector();
     mockLogger = MockGameLogger();
     mockStorage = MockStorageService();
+    mockTheme = MockThemeController();
     stateNotifier = GameStateNotifier();
     
     gameController = GameController(
@@ -38,6 +41,7 @@ void main() {
       gameLogger: mockLogger,
       stateNotifier: stateNotifier,
       storageService: mockStorage,
+      themeController: mockTheme,
     );
   });
 

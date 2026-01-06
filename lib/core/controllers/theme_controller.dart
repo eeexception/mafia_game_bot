@@ -14,10 +14,16 @@ class ThemeController {
 
   /// Load theme by ID
   Future<ThemeConfig> selectTheme(String themeId) async {
-    // In a real app, you'd find the path for the ID
+    // Search in available themes for the correct folder if needed, 
+    // but for now assume themes/{id}/config.yaml
     final path = 'themes/$themeId/config.yaml';
     _currentTheme = await _loader.loadThemeConfig(path);
     return _currentTheme!;
+  }
+
+  /// Initialize available themes
+  Future<void> initializeThemes() async {
+    _availableThemes = await _loader.discoverThemes();
   }
   
   /// Get role display name

@@ -3,19 +3,22 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
-import 'package:mafia_game/core/controllers/audio_controller.dart' as _i2;
+import 'package:mafia_game/core/controllers/audio_controller.dart' as _i3;
+import 'package:mafia_game/core/controllers/theme_controller.dart' as _i14;
 import 'package:mafia_game/core/controllers/websocket_controller.dart' as _i6;
 import 'package:mafia_game/core/controllers/win_detector.dart' as _i9;
 import 'package:mafia_game/core/models/game_phase.dart' as _i5;
 import 'package:mafia_game/core/models/game_state.dart' as _i8;
 import 'package:mafia_game/core/models/player.dart' as _i11;
 import 'package:mafia_game/core/models/player_action.dart' as _i10;
-import 'package:mafia_game/core/models/theme_config.dart' as _i4;
+import 'package:mafia_game/core/models/role.dart' as _i15;
+import 'package:mafia_game/core/models/theme_config.dart' as _i2;
 import 'package:mafia_game/core/services/game_logger.dart' as _i12;
 import 'package:mafia_game/core/services/storage_service.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i16;
 import 'package:web_socket_channel/web_socket_channel.dart' as _i7;
 
 // ignore_for_file: type=lint
@@ -33,22 +36,27 @@ import 'package:web_socket_channel/web_socket_channel.dart' as _i7;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
+class _FakeThemeConfig_0 extends _i1.SmartFake implements _i2.ThemeConfig {
+  _FakeThemeConfig_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [AudioController].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAudioController extends _i1.Mock implements _i2.AudioController {
+class MockAudioController extends _i1.Mock implements _i3.AudioController {
   MockAudioController() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> loadTheme(_i4.ThemeConfig? theme) =>
+  _i4.Future<void> loadTheme(_i2.ThemeConfig? theme) =>
       (super.noSuchMethod(
             Invocation.method(#loadTheme, [theme]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
   void playBackgroundMusic(_i5.GamePhase? phase) => super.noSuchMethod(
@@ -57,31 +65,44 @@ class MockAudioController extends _i1.Mock implements _i2.AudioController {
   );
 
   @override
-  _i3.Future<void> playEvent(String? eventKey) =>
+  _i4.Future<String?> playEvent(String? eventKey) =>
       (super.noSuchMethod(
             Invocation.method(#playEvent, [eventKey]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<String?>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<String?>);
 
   @override
-  _i3.Future<void> restoreBackground() =>
+  _i4.Future<String?> playCompositeEvent(List<String>? eventKeys) =>
+      (super.noSuchMethod(
+            Invocation.method(#playCompositeEvent, [eventKeys]),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  _i4.Future<void> restoreBackground() =>
       (super.noSuchMethod(
             Invocation.method(#restoreBackground, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> stopAll() =>
+  void stopBackgroundMusic() => super.noSuchMethod(
+    Invocation.method(#stopBackgroundMusic, []),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  _i4.Future<void> stopAll() =>
       (super.noSuchMethod(
             Invocation.method(#stopAll, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 }
 
 /// A class which mocks [WebSocketController].
@@ -99,6 +120,12 @@ class MockWebSocketController extends _i1.Mock
         Invocation.setter(#onMessageReceived, value),
         returnValueForMissingStub: null,
       );
+
+  @override
+  set onConnectionLost(void Function(String)? value) => super.noSuchMethod(
+    Invocation.setter(#onConnectionLost, value),
+    returnValueForMissingStub: null,
+  );
 
   @override
   void addConnection(String? playerId, _i7.WebSocketChannel? channel) =>
@@ -119,6 +146,11 @@ class MockWebSocketController extends _i1.Mock
         Invocation.method(#sendToClient, [playerId, message]),
         returnValueForMissingStub: null,
       );
+
+  @override
+  _i7.WebSocketChannel? getConnection(String? playerId) =>
+      (super.noSuchMethod(Invocation.method(#getConnection, [playerId]))
+          as _i7.WebSocketChannel?);
 
   @override
   void broadcast(Map<String, dynamic>? message) => super.noSuchMethod(
@@ -144,6 +176,16 @@ class MockWebSocketController extends _i1.Mock
   @override
   void registerSession(String? playerId, String? token) => super.noSuchMethod(
     Invocation.method(#registerSession, [playerId, token]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void rebindConnection(
+    String? oldId,
+    String? newId,
+    _i7.WebSocketChannel? channel,
+  ) => super.noSuchMethod(
+    Invocation.method(#rebindConnection, [oldId, newId, channel]),
     returnValueForMissingStub: null,
   );
 }
@@ -193,18 +235,18 @@ class MockGameLogger extends _i1.Mock implements _i12.GameLogger {
   );
 
   @override
-  void logDetailed(String? message) => super.noSuchMethod(
-    Invocation.method(#logDetailed, [message]),
+  void logDetailed(String? message, {int? level = 800}) => super.noSuchMethod(
+    Invocation.method(#logDetailed, [message], {#level: level}),
     returnValueForMissingStub: null,
   );
 
   @override
-  _i3.Future<String?> exportLog() =>
+  _i4.Future<String?> exportLog() =>
       (super.noSuchMethod(
             Invocation.method(#exportLog, []),
-            returnValue: _i3.Future<String?>.value(),
+            returnValue: _i4.Future<String?>.value(),
           )
-          as _i3.Future<String?>);
+          as _i4.Future<String?>);
 
   @override
   void reset() => super.noSuchMethod(
@@ -222,35 +264,35 @@ class MockStorageService extends _i1.Mock implements _i13.StorageService {
   }
 
   @override
-  _i3.Future<void> init([String? path]) =>
+  _i4.Future<void> init([String? path]) =>
       (super.noSuchMethod(
             Invocation.method(#init, [path]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> saveSetting(String? key, dynamic value) =>
+  _i4.Future<void> saveSetting(String? key, dynamic value) =>
       (super.noSuchMethod(
             Invocation.method(#saveSetting, [key, value]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
   dynamic getSetting(String? key) =>
       super.noSuchMethod(Invocation.method(#getSetting, [key]));
 
   @override
-  _i3.Future<void> incrementStat(String? key, [int? amount = 1]) =>
+  _i4.Future<void> incrementStat(String? key, [int? amount = 1]) =>
       (super.noSuchMethod(
             Invocation.method(#incrementStat, [key, amount]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
   dynamic getStat(String? key, {dynamic defaultValue}) => super.noSuchMethod(
@@ -258,20 +300,76 @@ class MockStorageService extends _i1.Mock implements _i13.StorageService {
   );
 
   @override
-  _i3.Future<void> clear() =>
+  _i4.Future<void> clear() =>
       (super.noSuchMethod(
             Invocation.method(#clear, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> dispose() =>
+  _i4.Future<void> dispose() =>
       (super.noSuchMethod(
             Invocation.method(#dispose, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
+}
+
+/// A class which mocks [ThemeController].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockThemeController extends _i1.Mock implements _i14.ThemeController {
+  MockThemeController() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  List<_i2.ThemeMeta> get availableThemes =>
+      (super.noSuchMethod(
+            Invocation.getter(#availableThemes),
+            returnValue: <_i2.ThemeMeta>[],
+          )
+          as List<_i2.ThemeMeta>);
+
+  @override
+  _i4.Future<_i2.ThemeConfig> selectTheme(String? themeId) =>
+      (super.noSuchMethod(
+            Invocation.method(#selectTheme, [themeId]),
+            returnValue: _i4.Future<_i2.ThemeConfig>.value(
+              _FakeThemeConfig_0(
+                this,
+                Invocation.method(#selectTheme, [themeId]),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.ThemeConfig>);
+
+  @override
+  _i4.Future<void> initializeThemes() =>
+      (super.noSuchMethod(
+            Invocation.method(#initializeThemes, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  String getRoleDisplayName(_i15.RoleType? role) =>
+      (super.noSuchMethod(
+            Invocation.method(#getRoleDisplayName, [role]),
+            returnValue: _i16.dummyValue<String>(
+              this,
+              Invocation.method(#getRoleDisplayName, [role]),
+            ),
+          )
+          as String);
+
+  @override
+  void setAvailableThemes(List<_i2.ThemeMeta>? themes) => super.noSuchMethod(
+    Invocation.method(#setAvailableThemes, [themes]),
+    returnValueForMissingStub: null,
+  );
 }

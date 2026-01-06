@@ -8,10 +8,19 @@ part 'game_config.g.dart';
 abstract class GameConfig with _$GameConfig {
   const factory GameConfig({
     required String themeId,
-    @Default(true) bool mafiaBlindMode,    // false = Sync mode
+    @Default(true) bool autoPruningEnabled,
     @Default(false) bool donMechanicsEnabled,
-    @Default(true) bool prostituteEnabled,
-    @Default(true) bool maniacEnabled,
+    @Default(true) bool commissarEnabled,
+    @Default(true) bool doctorEnabled,
+    @Default(false) bool prostituteEnabled,
+    @Default(false) bool maniacEnabled,
+    @Default(false) bool commissarKills,
+    @Default(false) bool sergeantEnabled,
+    @Default(false) bool lawyerEnabled,
+    @Default(false) bool poisonerEnabled,
+    @Default(true) bool doctorCanHealSelf,
+    @Default(false) bool doctorCanHealSameTargetConsecutively,
+    @Default('en') String locale,
     
     // Timer durations in seconds
     @Default(120) int discussionTime,

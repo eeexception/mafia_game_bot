@@ -22,6 +22,12 @@ class RoleConverter implements JsonConverter<Role, Map<String, dynamic>> {
         return const ProstituteRole();
       case RoleType.maniac:
         return const ManiacRole();
+      case RoleType.sergeant:
+        return const SergeantRole();
+      case RoleType.lawyer:
+        return const LawyerRole();
+      case RoleType.poisoner:
+        return const PoisonerRole();
     }
   }
 

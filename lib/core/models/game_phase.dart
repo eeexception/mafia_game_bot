@@ -6,20 +6,26 @@ enum GamePhase {
   /// Role distribution and game setup
   setup,
   
-  /// Night: Mafia selects victim
-  nightMafia,
+  /// Period for players to view their assigned roles
+  roleReveal,
   
   /// Night: Prostitute selects client
   nightProstitute,
   
+  /// Night: Poisoner poisons a player
+  nightPoisoner,
+
+  /// Night: Mafia selects victim
+  nightMafia,
+
+  /// Night: Commissar investigates player
+  nightCommissar,
+
   /// Night: Maniac selects victim
   nightManiac,
   
   /// Night: Doctor selects patient
   nightDoctor,
-  
-  /// Night: Commissar investigates player
-  nightCommissar,
   
   /// Morning announcement of night results
   morning,

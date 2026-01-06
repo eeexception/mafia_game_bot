@@ -2,23 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/client/screens/connection_screen.dart';
 import 'ui/shared/app_theme.dart';
+import 'core/state/providers.dart';
+import 'l10n/app_localizations.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final container = ProviderContainer();
+  // Initialize Hive
+  await container.read(storageServiceProvider).init();
+  
   runApp(
-    const ProviderScope(
-      child: MafiaClientApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const MafiaClientApp(),
     ),
   );
 }
 
-class MafiaClientApp extends StatelessWidget {
+
+class MafiaClientApp extends ConsumerWidget {
   const MafiaClientApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+    
     return MaterialApp(
       title: 'Mafia Client',
       theme: AppTheme.darkTheme,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       home: const ConnectionScreen(),
       debugShowCheckedModeBanner: false,
     );

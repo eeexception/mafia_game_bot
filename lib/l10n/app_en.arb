@@ -1,0 +1,188 @@
+{
+  "@@locale": "en",
+  "appTitle": "Mafia Party Game",
+  "gameSetup": "GAME SETUP",
+  "playersConnected": "{count} Players Connected",
+  "@playersConnected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rolesAndMechanics": "ROLES & MECHANICS",
+  "commissarRole": "Commissar Role",
+  "commissarSubtitle": "Town investigator (Rec: 3+ players)",
+  "doctorRole": "Doctor Role",
+  "doctorSubtitle": "Town healer (Rec: 4+ players)",
+  "doctorCanHealSelf": "Doctor Can Heal Self",
+  "allowConsecutiveHealing": "Allow Consecutive Healing",
+  "allowConsecutiveHealingSubtitle": "Can heal same player twice in a row",
+  "prostituteRole": "Prostitute Role",
+  "prostituteSubtitle": "Blocks night actions (Rec: 5+ players)",
+  "maniacRole": "Maniac Role",
+  "maniacSubtitle": "Neutral killer (Rec: 9+ players)",
+  "sergeantRole": "Sergeant Role",
+  "sergeantSubtitle": "Commissar helper (Rec: 6+ players)",
+  "lawyerRole": "Lawyer Role",
+  "lawyerSubtitle": "Mafia investigator (Rec: 7+ players)",
+  "poisonerRole": "Poisoner Role",
+  "poisonerSubtitle": "Neutral trap role (Rec: 8+ players)",
+  "gameMechanics": "GAME MECHANICS",
+  "autoPruning": "Auto-pruning Roles",
+  "autoPruningSubtitle": "Automatically skip roles if player count is too low",
+  "donMechanics": "Don Mechanics",
+  "donMechanicsSubtitle": "Mafia leader controls the kill (Rec: 3+ players)",
+  "commissarKills": "Commissar Can Kill",
+  "commissarKillsSubtitle": "Commissar shoots instead of checking",
+  "discussion": "Discussion",
+  "voting": "Voting",
+  "defense": "Defense",
+  "mafiaAction": "Mafia Action",
+  "timers": "TIMERS (Seconds)",
+  "themeAndVoiceActing": "THEME & VOICE ACTING",
+  "readyToStart": "READY TO START?",
+  "distributeRoles": "DISTRIBUTE ROLES",
+  "needAtLeast3Players": "Need at least 3 players",
+  "byAuthor": "by {author}",
+  "@byAuthor": {
+    "placeholders": {
+      "author": {}
+    }
+  },
+  "language": "Language",
+  "english": "English",
+  "russian": "Russian",
+  "startGame": "START GAME",
+  "waitingForPlayers": "Waiting for players...",
+  "mafia": "Mafia",
+  "civilian": "Civilian",
+  "doctor": "Doctor",
+  "prostitute": "Prostitute",
+  "commissar": "Commissar",
+  "maniac": "Maniac",
+  "sergeant": "Sergeant",
+  "lawyer": "Lawyer",
+  "poisoner": "Poisoner",
+  "scanToJoin": "Scan to Join",
+  "connectedPlayersCount": "Connected Players: {count}",
+  "@connectedPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalPlayersRegistered": "({count} total players registered)",
+  "@totalPlayersRegistered": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removeDisconnectedPlayer": "Remove disconnected player",
+  "viewStatistics": "VIEW STATISTICS",
+  "setupGame": "SETUP GAME",
+  "audioNotFound": "⚠️ AUDIO NOT FOUND: {path}",
+  "@audioNotFound": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "stopGame": "STOP GAME?",
+  "stopGameConfirm": "Are you sure you want to stop the game? This will reveal all roles.",
+  "cancel": "CANCEL",
+  "stop": "STOP",
+  "paused": "PAUSED",
+  "phaseLobby": "Lobby",
+  "phaseSetup": "Setup",
+  "phaseRoleReveal": "Role Reveal",
+  "phaseNightMafia": "Night: Mafia",
+  "phaseNightProstitute": "Night: Prostitute",
+  "phaseNightManiac": "Night: Maniac",
+  "phaseNightDoctor": "Night: Doctor",
+  "phaseNightPoisoner": "Night: Poisoner",
+  "phaseNightCommissar": "Night: Commissar",
+  "phaseMorning": "Morning",
+  "phaseDayDiscussion": "Day: Discussion",
+  "phaseDayVoting": "Day: Voting",
+  "phaseDayDefense": "Day: Defense",
+  "phaseDayVerdict": "Day: Verdict",
+  "phaseGameOver": "Game Over",
+  "resumeSpace": "RESUME (SPACE)",
+  "pauseSpace": "PAUSE (SPACE)",
+  "stopGameEsc": "STOP GAME (ESC)",
+  "advancePhase": "ADVANCE PHASE",
+  "gamePausedLarge": "GAME PAUSED",
+  "judgingPlayer": "JUDGING PLAYER {number}",
+  "@judgingPlayer": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "execute": "EXECUTE",
+  "pardon": "PARDON",
+  "votesCast": "VOTES CAST",
+  "remaining": "REMAINING",
+  "eventLog": "EVENT LOG",
+  "eliminated": "ELIMINATED",
+  "votesCount": "VOTES: {count}",
+  "@votesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "votingFor": "VOTING FOR #{number}",
+  "@votingFor": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "no": "NO.",
+  "nickname": "NICKNAME",
+  "role": "ROLE",
+  "status": "STATUS",
+  "alive": "ALIVE",
+  "newGameKeepPlayers": "NEW GAME (KEEP PLAYERS)",
+  "exitToMainMenu": "EXIT TO MAIN MENU",
+  "exportLog": "EXPORT LOG",
+  "logExportedTo": "Log exported to: {path}",
+  "@logExportedTo": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "failedToExportLog": "Failed to export log",
+  "errorLoadingThemes": "Error loading themes: {error}",
+  "@errorLoadingThemes": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "gameStatistics": "GAME STATISTICS",
+  "totalGamesPlayed": "TOTAL GAMES PLAYED",
+  "townWins": "TOWN WINS",
+  "mafiaWins": "MAFIA WINS",
+  "maniacWins": "MANIAC WINS",
+  "resetAllStatistics": "RESET ALL STATISTICS",
+  "resultsViewing": "RESULTS VIEWING",
+  "fallAsleep": "FALL ASLEEP (DONE)",
+  "actionConfirmed": "ACTION CONFIRMED",
+  "waitingForOthers": "Waiting for others...",
+  "donKillAction": "DON KILL ACTION",
+  "donSearch": "DON SEARCH (SEARCH FOR COMMISSAR)",
+  "mafiaTeamVote": "MAFIA TEAM VOTE",
+  "lawyerInvestigation": "LAWYER INVESTIGATION (SEARCH ACTIVE TOWN)",
+  "poisonerAction": "POISONER ACTION (DELAYED KILL)",
+  "doctorAction": "DOCTOR ACTION (HEAL)",
+  "commissarActionKill": "COMMISSAR ACTION (KILL)",
+  "commissarActionInvestigate": "COMMISSAR/SERGEANT ACTION (INVESTIGATE)",
+  "cityIsSleeping": "THE CITY IS SLEEPING..."
+}

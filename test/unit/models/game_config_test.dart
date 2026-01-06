@@ -7,10 +7,10 @@ void main() {
       const config = GameConfig(themeId: 'classic_chicago');
       
       expect(config.themeId, equals('classic_chicago'));
-      expect(config.mafiaBlindMode, isTrue);
+      expect(config.autoPruningEnabled, isTrue);
       expect(config.donMechanicsEnabled, isFalse);
-      expect(config.prostituteEnabled, isTrue);
-      expect(config.maniacEnabled, isTrue);
+      expect(config.prostituteEnabled, isFalse);
+      expect(config.maniacEnabled, isFalse);
       expect(config.discussionTime, equals(120));
       expect(config.votingTime, equals(60));
       expect(config.defenseTime, equals(60));

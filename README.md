@@ -206,4 +206,4 @@ Themes are located in the `themes/` directory. A theme consists of:
 ---
 **Status**: Production Ready  
 **Version**: 1.0.0  
-**License**: Proprietary
+**License**: GNU GPL v3

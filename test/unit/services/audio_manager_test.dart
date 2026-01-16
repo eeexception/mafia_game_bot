@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/services/audio_manager.dart';
+import 'package:mafia_game/infrastructure/services/audio/audio_manager.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:audioplayers/audioplayers.dart';

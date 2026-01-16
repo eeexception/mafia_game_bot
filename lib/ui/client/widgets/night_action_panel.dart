@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
-import '../../../core/models/role.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
+import '../../../domain/models/roles/role.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Panel for Night Actions (Kill, Block, Heal, Investigate, Don Search).

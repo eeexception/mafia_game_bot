@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/state/providers.dart';
+import '../../../presentation/state/app/providers.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class StatisticsScreen extends ConsumerWidget {

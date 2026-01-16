@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/commissar_ready_service.dart';
+import 'package:mafia_game/application/services/actions/commissar_ready_service.dart';
 
 void main() {
   test('isReadyEarly returns true only for night_commissar move', () {

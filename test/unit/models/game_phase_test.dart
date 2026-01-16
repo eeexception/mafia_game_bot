@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/models/game_phase.dart';
+import 'package:mafia_game/domain/models/game/game_phase.dart';
 
 void main() {
   group('GamePhase Hierarchy', () {

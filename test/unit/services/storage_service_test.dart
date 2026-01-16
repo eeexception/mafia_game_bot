@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/services/storage_service.dart';
+import 'package:mafia_game/infrastructure/services/storage/storage_service.dart';
 
 void main() {
   group('StorageService', () {

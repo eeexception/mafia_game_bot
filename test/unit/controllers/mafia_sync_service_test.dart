@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/mafia_sync_service.dart';
-import 'package:mafia_game/core/models/player_action.dart';
+import 'package:mafia_game/application/services/actions/mafia_sync_service.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
 
 void main() {
   test('builds sync message for mafia kill actions', () {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:collection/collection.dart';
-import '../../../core/state/providers.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
-import '../../../core/models/game_phase.dart';
-import '../../../core/models/role.dart';
+import '../../../presentation/state/app/providers.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
+import '../../../domain/models/game/game_phase.dart';
+import '../../../domain/models/roles/role.dart';
 import '../widgets/phase_header.dart';
 import '../widgets/role_viewer.dart';
 import '../widgets/voting_grid.dart';

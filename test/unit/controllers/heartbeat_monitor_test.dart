@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/heartbeat_monitor.dart';
-import 'package:mafia_game/core/models/player.dart';
-import 'package:mafia_game/core/models/role.dart';
+import 'package:mafia_game/application/services/session/heartbeat_monitor.dart';
+import 'package:mafia_game/domain/models/players/player.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
 
 void main() {
   test('marks players disconnected when heartbeat exceeds timeout', () {

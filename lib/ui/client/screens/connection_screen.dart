@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/state/providers.dart';
-import '../../../core/models/game_phase.dart';
+import '../../../presentation/state/app/providers.dart';
+import '../../../domain/models/game/game_phase.dart';
 import 'game_screen.dart';
 
 class ConnectionScreen extends ConsumerStatefulWidget {

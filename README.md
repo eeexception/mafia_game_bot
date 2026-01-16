@@ -77,11 +77,35 @@ Following a strict **MVC + Clean Architecture** pattern:
 
 ```text
 lib/
-├── core/
-│   ├── models/          # Immutable data entities (Player, Role, GameState)
-│   ├── controllers/     # Business logic & State machines (GameController, AudioController)
-│   ├── services/        # Infrastructure (WebSocketServer, HttpServer, Storage)
-│   └── state/           # Riverpod providers
+├── domain/
+│   └── models/          # Immutable data entities
+│       ├── game/
+│       ├── players/
+│       ├── roles/
+│       ├── themes/
+│       └── voting/
+├── application/
+│   └── services/        # Business logic & state machines
+│       ├── actions/
+│       ├── audio/
+│       ├── game/
+│       ├── network/
+│       ├── roles/
+│       ├── session/
+│       ├── theme/
+│       └── voting/
+├── infrastructure/
+│   └── services/        # IO adapters
+│       ├── audio/
+│       ├── device/
+│       ├── logging/
+│       ├── network/
+│       ├── storage/
+│       └── theme/
+├── presentation/
+│   └── state/           # Riverpod providers/state
+│       ├── app/
+│       └── game/
 ├── ui/
 │   ├── host/            # Desktop-specific screens and widgets
 │   ├── client/          # Mobile web-specific screens and widgets
@@ -90,7 +114,7 @@ lib/
 └── main_client.dart     # Client PWA entry point
 ```
 
-### Notable Core Controllers/Services
+### Notable Application Services
 
 *   **GameController**: Orchestrates state transitions and delegates to core flow services.
 *   **NightFlowService**: Night readiness, immediate actions, resolution, and announcements.

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/client/screens/connection_screen.dart';
 import 'ui/shared/app_theme.dart';
-import 'core/state/providers.dart';
+import 'presentation/state/app/providers.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {

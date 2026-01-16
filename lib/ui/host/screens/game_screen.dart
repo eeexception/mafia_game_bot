@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/state/providers.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
-import '../../../core/models/game_phase.dart';
-import '../../../core/models/vote_tally.dart';
+import '../../../presentation/state/app/providers.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
+import '../../../domain/models/game/game_phase.dart';
+import '../../../domain/models/voting/vote_tally.dart';
 import 'victory_screen.dart';
 import '../../../../l10n/app_localizations.dart';
 

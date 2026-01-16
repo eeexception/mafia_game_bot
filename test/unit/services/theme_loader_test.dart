@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/services/theme_loader.dart';
+import 'package:mafia_game/infrastructure/services/theme/theme_loader.dart';
 
 import 'dart:io';
 

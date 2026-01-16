@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/state/providers.dart';
-import 'package:mafia_game/core/models/game_config.dart';
+import '../../../presentation/state/app/providers.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'game_screen.dart';
 

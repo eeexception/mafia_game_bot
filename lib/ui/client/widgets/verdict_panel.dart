@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
 
 /// Panel for Day Verdict (Pardon or Execute choice).
 class VerdictPanel extends StatelessWidget {

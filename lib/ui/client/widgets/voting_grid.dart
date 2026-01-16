@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
 
 /// Horizontal grid for Day Voting (selection of suspect).
 class VotingGrid extends StatelessWidget {

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/game_controller.dart';
-import 'package:mafia_game/core/models/player.dart';
-import 'package:mafia_game/core/models/role.dart';
-import 'package:mafia_game/core/models/player_action.dart';
-import 'package:mafia_game/core/models/game_config.dart';
-import 'package:mafia_game/core/state/game_state_notifier.dart';
+import 'package:mafia_game/application/services/game/game_controller.dart';
+import 'package:mafia_game/domain/models/players/player.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
+import 'package:mafia_game/presentation/state/game/game_state_notifier.dart';
 import 'package:mockito/mockito.dart';
 import 'night_actions_test.mocks.dart';
 

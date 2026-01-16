@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/vote_counter.dart';
+import 'package:mafia_game/application/services/voting/vote_counter.dart';
 
 void main() {
   test('tally returns empty results when there are no votes', () {

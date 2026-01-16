@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/night_flow_service.dart';
-import 'package:mafia_game/core/models/game_config.dart';
-import 'package:mafia_game/core/models/game_phase.dart';
-import 'package:mafia_game/core/models/game_state.dart';
-import 'package:mafia_game/core/models/player.dart';
-import 'package:mafia_game/core/models/player_action.dart';
-import 'package:mafia_game/core/models/role.dart';
+import 'package:mafia_game/application/services/game/night_flow_service.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
+import 'package:mafia_game/domain/models/game/game_phase.dart';
+import 'package:mafia_game/domain/models/game/game_state.dart';
+import 'package:mafia_game/domain/models/players/player.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
 
 void main() {
   test('validates doctor self-heal rule', () {

@@ -1,21 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/game_controller.dart';
-import 'package:mafia_game/core/controllers/audio_controller.dart';
-import 'package:mafia_game/core/controllers/websocket_controller.dart';
-import 'package:mafia_game/core/controllers/theme_controller.dart';
-import 'package:mafia_game/core/controllers/win_detector.dart';
-import 'package:mafia_game/core/services/game_logger.dart';
-import 'package:mafia_game/core/services/storage_service.dart';
-import 'package:mafia_game/core/models/game_config.dart';
-import 'package:mafia_game/core/models/role.dart';
-import 'package:mafia_game/core/models/player.dart';
+import 'package:mafia_game/application/services/game/game_controller.dart';
+import 'package:mafia_game/application/services/audio/audio_controller.dart';
+import 'package:mafia_game/application/services/network/websocket_controller.dart';
+import 'package:mafia_game/application/services/theme/theme_controller.dart';
+import 'package:mafia_game/application/services/game/win_detector.dart';
+import 'package:mafia_game/infrastructure/services/logging/game_logger.dart';
+import 'package:mafia_game/infrastructure/services/storage/storage_service.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
+import 'package:mafia_game/domain/models/players/player.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:mafia_game/core/state/game_state_notifier.dart';
-import 'package:mafia_game/core/models/game_state.dart';
-import 'package:mafia_game/core/models/game_phase.dart';
-import 'package:mafia_game/core/models/player_action.dart';
+import 'package:mafia_game/presentation/state/game/game_state_notifier.dart';
+import 'package:mafia_game/domain/models/game/game_state.dart';
+import 'package:mafia_game/domain/models/game/game_phase.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
 
 import 'game_controller_test.mocks.dart';
 

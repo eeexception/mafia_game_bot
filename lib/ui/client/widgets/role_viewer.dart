@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/player.dart';
+import '../../../domain/models/players/player.dart';
 
 /// Widget that allows a player to reveal their role by pressing and holding.
 class RoleViewer extends StatefulWidget {

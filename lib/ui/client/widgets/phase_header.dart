@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/game_state.dart';
-import '../../../core/models/player.dart';
+import '../../../domain/models/game/game_state.dart';
+import '../../../domain/models/players/player.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Header widget for the Client PWA showing player info and game status.

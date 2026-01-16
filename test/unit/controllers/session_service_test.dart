@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/session_service.dart';
-import 'package:mafia_game/core/models/game_phase.dart';
-import 'package:mafia_game/core/models/game_state.dart';
-import 'package:mafia_game/core/models/game_config.dart';
+import 'package:mafia_game/application/services/session/session_service.dart';
+import 'package:mafia_game/domain/models/game/game_phase.dart';
+import 'package:mafia_game/domain/models/game/game_state.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
 
 void main() {
   test('generates 6-digit numeric session id', () {

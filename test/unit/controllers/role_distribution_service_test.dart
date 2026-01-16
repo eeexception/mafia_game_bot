@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/role_distribution_service.dart';
-import 'package:mafia_game/core/models/game_config.dart';
-import 'package:mafia_game/core/models/role.dart';
+import 'package:mafia_game/application/services/roles/role_distribution_service.dart';
+import 'package:mafia_game/domain/models/game/game_config.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
 
 void main() {
   test('assigns mafia count based on player count by default', () {

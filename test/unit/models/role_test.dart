@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/models/role.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
 
 void main() {
   group('Role', () {

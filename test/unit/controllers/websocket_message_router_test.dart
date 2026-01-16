@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/websocket_message_router.dart';
-import 'package:mafia_game/core/models/player_action.dart';
+import 'package:mafia_game/application/services/network/websocket_message_router.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
 
 void main() {
   test('routes player_joined to handler', () {

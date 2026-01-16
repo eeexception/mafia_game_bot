@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mafia_game/core/controllers/action_buffer_service.dart';
-import 'package:mafia_game/core/models/player.dart';
-import 'package:mafia_game/core/models/player_action.dart';
-import 'package:mafia_game/core/models/role.dart';
+import 'package:mafia_game/application/services/actions/action_buffer_service.dart';
+import 'package:mafia_game/domain/models/players/player.dart';
+import 'package:mafia_game/domain/models/players/player_action.dart';
+import 'package:mafia_game/domain/models/roles/role.dart';
 
 void main() {
   test('buffers action and replaces previous action for same performer', () {

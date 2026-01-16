@@ -78,11 +78,35 @@
 
 ```text
 lib/
-├── core/
-│   ├── models/          # Иммутабельные сущности (Player, Role, GameState)
-│   ├── controllers/     # Бизнес-логика и машины состояний (GameController, AudioController)
-│   ├── services/        # Инфраструктура (WebSocketServer, HttpServer, Storage)
+├── domain/
+│   └── models/          # Иммутабельные сущности
+│       ├── game/
+│       ├── players/
+│       ├── roles/
+│       ├── themes/
+│       └── voting/
+├── application/
+│   └── services/        # Бизнес-логика и машины состояний
+│       ├── actions/
+│       ├── audio/
+│       ├── game/
+│       ├── network/
+│       ├── roles/
+│       ├── session/
+│       ├── theme/
+│       └── voting/
+├── infrastructure/
+│   └── services/        # Инфраструктура
+│       ├── audio/
+│       ├── device/
+│       ├── logging/
+│       ├── network/
+│       ├── storage/
+│       └── theme/
+├── presentation/
 │   └── state/           # Провайдеры Riverpod
+│       ├── app/
+│       └── game/
 ├── ui/
 │   ├── host/            # Экраны и виджеты для десктопа
 │   ├── client/          # Экраны и виджеты для мобильного браузера
@@ -91,7 +115,7 @@ lib/
 └── main_client.dart     # Точка входа Клиентского PWA
 ```
 
-### Ключевые контроллеры/сервисы
+### Ключевые сервисы приложения
 
 *   **GameController**: Оркестрация фаз и делегирование доменной логики.
 *   **NightFlowService**: Ночная готовность, мгновенные действия, резолв и анонсы.

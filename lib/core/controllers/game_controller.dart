@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:collection/collection.dart';
 import 'audio_controller.dart';
 import 'websocket_controller.dart';
 import 'theme_controller.dart';
@@ -9,7 +8,16 @@ import '../models/game_phase.dart';
 import '../models/game_config.dart';
 import '../models/player.dart';
 import '../models/role.dart';
+import 'heartbeat_monitor.dart';
 import 'win_detector.dart';
+import 'websocket_message_router.dart';
+import 'mafia_sync_service.dart';
+import 'commissar_ready_service.dart';
+import 'action_buffer_service.dart';
+import 'role_distribution_service.dart';
+import 'night_flow_service.dart';
+import 'session_service.dart';
+import 'voting_service.dart';
 import '../models/game_move.dart';
 import '../models/player_action.dart';
 import '../services/game_logger.dart';
@@ -26,8 +34,34 @@ class GameController {
     required this.stateNotifier,
     required this.storageService,
     required this.themeController,
+    HeartbeatMonitor? heartbeatMonitor,
+    WebSocketMessageRouter? messageRouter,
+    MafiaSyncService? mafiaSyncService,
+    CommissarReadyService? commissarReadyService,
+    ActionBufferService? actionBufferService,
+    RoleDistributionService? roleDistributionService,
+    NightFlowService? nightFlowService,
+    SessionService? sessionService,
+    VotingService? votingService,
   }) {
-    websocketController.onMessageReceived = _handleMessage;
+    _heartbeatMonitor = heartbeatMonitor ?? HeartbeatMonitor();
+    _mafiaSyncService = mafiaSyncService ?? MafiaSyncService();
+    _commissarReadyService =
+        commissarReadyService ?? CommissarReadyService();
+    _actionBufferService = actionBufferService ?? ActionBufferService();
+    _roleDistributionService =
+        roleDistributionService ?? RoleDistributionService();
+    _nightFlowService = nightFlowService ?? NightFlowService();
+    _sessionService = sessionService ?? SessionService();
+    _votingService = votingService ?? VotingService();
+    _messageRouter = messageRouter ??
+        WebSocketMessageRouter(
+          onPlayerJoined: _handlePlayerJoin,
+          onPlayerReconnect: _handlePlayerReconnect,
+          onPlayerAction: handlePlayerAction,
+          onHeartbeat: _handleHeartbeat,
+        );
+    websocketController.onMessageReceived = _messageRouter.route;
     websocketController.onConnectionLost = _handleConnectionLost;
     _startHeartbeatMonitor();
   }
@@ -51,22 +85,19 @@ class GameController {
   void _startHeartbeatMonitor() {
     Timer.periodic(const Duration(seconds: 10), (timer) {
       final now = DateTime.now();
-      final players = List<Player>.from(_state.players);
-      bool changed = false;
+      final result = _heartbeatMonitor.updatePlayers(
+        players: _state.players,
+        now: now,
+        timeout: const Duration(seconds: 20),
+      );
 
-      for (var i = 0; i < players.length; i++) {
-        if (players[i].isConnected && players[i].lastHeartbeat != null) {
-          final diff = now.difference(players[i].lastHeartbeat!);
-          if (diff.inSeconds > 20) {
-            players[i] = players[i].copyWith(isConnected: false);
-            changed = true;
-            gameLogger.logDetailed('Player ${players[i].nickname} timed out (No heartbeat).');
-          }
+      if (result.timedOutPlayers.isNotEmpty) {
+        for (final player in result.timedOutPlayers) {
+          gameLogger.logDetailed(
+            'Player ${player.nickname} timed out (No heartbeat).',
+          );
         }
-      }
-
-      if (changed) {
-        _state = _state.copyWith(players: players);
+        _state = _state.copyWith(players: result.players);
       }
     });
   }
@@ -78,29 +109,15 @@ class GameController {
   final GameStateNotifier stateNotifier;
   final StorageService storageService;
   final ThemeController themeController;
-
-  void _handleMessage(String senderId, Map<String, dynamic> message) {
-    final type = message['type'] as String?;
-    switch (type) {
-      case 'player_joined':
-        _handlePlayerJoin(senderId, message);
-        break;
-      case 'player_reconnect':
-        _handlePlayerReconnect(senderId, message);
-        break;
-      case 'player_action':
-        final rawAction = message['action'];
-        if (rawAction is Map) {
-          final actionMap = Map<String, dynamic>.from(rawAction);
-          actionMap['performerId'] = senderId;
-          handlePlayerAction(senderId, PlayerAction.fromJson(actionMap));
-        }
-        break;
-      case 'heartbeat':
-        _handleHeartbeat(senderId);
-        break;
-    }
-  }
+  late final HeartbeatMonitor _heartbeatMonitor;
+  late final WebSocketMessageRouter _messageRouter;
+  late final MafiaSyncService _mafiaSyncService;
+  late final CommissarReadyService _commissarReadyService;
+  late final ActionBufferService _actionBufferService;
+  late final RoleDistributionService _roleDistributionService;
+  late final NightFlowService _nightFlowService;
+  late final SessionService _sessionService;
+  late final VotingService _votingService;
 
   void _handleHeartbeat(String senderId) {
     final players = List<Player>.from(_state.players);
@@ -194,48 +211,45 @@ class GameController {
     }
 
     if (action.type == 'ready_to_vote' || action.type == 'toggle_ready') {
-      final players = List<Player>.from(_state.players);
-      final index = players.indexWhere((p) => p.id == senderId);
-      if (index != -1) {
-        players[index] = players[index].copyWith(isReadyToVote: !players[index].isReadyToVote);
-        _state = _state.copyWith(players: players);
-        
-        final livingPlayers = players.where((p) => p.isAlive).toList();
-        final readyPlayers = livingPlayers.where((p) => p.isReadyToVote).toList();
-        
-        if (readyPlayers.length == livingPlayers.length) {
-          gameLogger.logPublic('All players are ready.');
-          advancePhase();
-        } else {
-          websocketController.broadcast({'type': 'state_update', 'state': _state.toJson()});
-        }
+      final result = _votingService.toggleReady(
+        players: _state.players,
+        senderId: senderId,
+      );
+      _state = _state.copyWith(players: result.players);
+
+      if (result.allReady) {
+        gameLogger.logPublic('All players are ready.');
+        advancePhase();
+      } else {
+        websocketController.broadcast(
+          {'type': 'state_update', 'state': _state.toJson()},
+        );
       }
       return;
     }
 
     if (action.type == 'vote') {
-      final votes = Map<String, String>.from(_state.currentVotes ?? {});
-      if (action.targetId != null) {
-        votes[senderId] = action.targetId!;
-      } else {
-        votes.remove(senderId);
-      }
-      
-      final players = List<Player>.from(_state.players);
-      final index = players.indexWhere((p) => p.id == senderId);
-      if (index != -1) {
-        players[index] = players[index].copyWith(hasActed: true);
-      }
+      final result = _votingService.applyVote(
+        players: _state.players,
+        currentVotes: _state.currentVotes ?? {},
+        senderId: senderId,
+        targetId: action.targetId,
+      );
 
-      _state = _state.copyWith(currentVotes: votes, players: players);
+      _state = _state.copyWith(
+        currentVotes: result.votes,
+        players: result.players,
+      );
 
       // Visibility for Mafia team
       if (_state.currentMoveId == 'night_mafia') {
-          final mafiaFamily = players.where((p) => p.role.faction == Faction.mafia).toList();
+          final mafiaFamily = result.players
+              .where((p) => p.role.faction == Faction.mafia)
+              .toList();
           for (var member in mafiaFamily) {
               websocketController.sendToClient(member.id, {
                   'type': 'team_votes_update',
-                  'votes': votes,
+                  'votes': result.votes,
               });
           }
       }
@@ -244,17 +258,18 @@ class GameController {
 
     if (action.type == 'verdict') {
       if (_state.phase.id != 'day' || _currentMove?.id != 'day_verdict') return;
-      final verdicts = Map<String, bool>.from(_state.currentVerdicts ?? {});
       final decision = action.targetId == 'execute';
-      verdicts[senderId] = decision;
+      final result = _votingService.applyVerdict(
+        players: _state.players,
+        currentVerdicts: _state.currentVerdicts ?? {},
+        senderId: senderId,
+        decision: decision,
+      );
 
-      final players = List<Player>.from(_state.players);
-      final index = players.indexWhere((p) => p.id == senderId);
-      if (index != -1) {
-        players[index] = players[index].copyWith(hasActed: true);
-      }
-
-      _state = _state.copyWith(currentVerdicts: verdicts, players: players);
+      _state = _state.copyWith(
+        currentVerdicts: result.verdicts,
+        players: result.players,
+      );
       return;
     }
 
@@ -268,160 +283,89 @@ class GameController {
     }
 
     if (action.type == 'doctor_heal') {
-        if (!_state.config.doctorCanHealSelf && action.targetId == senderId) {
-            websocketController.sendToClient(senderId, {
-                'type': 'error',
-                'message': 'You cannot heal yourself!',
-            });
-            return;
-        }
-        if (!_state.config.doctorCanHealSameTargetConsecutively && action.targetId == _state.lastDoctorTargetId) {
-             websocketController.sendToClient(senderId, {
-                'type': 'error',
-                'message': 'You cannot heal the same person twice in a row!',
-            });
-            return;
-        }
-    }
-
-    if (action.type == 'mafia_kill') {
-        if (_state.config.donMechanicsEnabled && _state.config.donAction == DonAction.kill) {
-            final livingDon = _state.players.firstWhereOrNull((p) => p.isAlive && p.role is MafiaRole && (p.role as MafiaRole).isDon);
-            if (livingDon != null && senderId != livingDon.id) {
-                // There is a living Don in KILL mode, and this is not him.
-                // He is the only one who can choose a target.
-                return;
-            }
-        }
-    }
-
-    final updatedActions = List<PlayerAction>.from(_state.pendingActions);
-    updatedActions.removeWhere((a) => a.performerId == senderId);
-    updatedActions.add(action.copyWith(performerId: senderId));
-
-    final players = List<Player>.from(_state.players);
-    final index = players.indexWhere((p) => p.id == senderId);
-    if (index != -1) {
-      players[index] = players[index].copyWith(hasActed: true);
-    }
-
-    _state = _state.copyWith(
-      pendingActions: updatedActions,
-      players: players,
-    );
-
-    // Immediate resolution for Commissar/Sergeant checks/kills
-    if (action.type == 'commissar_check' || action.type == 'commissar_kill') {
-      final isSergeant = sender.role.type == RoleType.sergeant;
-      final isCommissar = sender.role.type == RoleType.commissar;
-      
-      // Strict separation: Sergeant checks, Commissar kills
-      if (isSergeant && action.type != 'commissar_check') return;
-      if (isCommissar && action.type != 'commissar_kill' && _state.players.any((p) => p.role.type == RoleType.sergeant)) {
-          // If Sergeant is in the game (even if dead), Commissar can't check? 
-          // User said "When sergeant is in game, he does checks, commissar kills".
-          // And "If sergeant or commissar dies, the other doesn't take his role".
-          // This implies the restriction remains even after death.
-          return;
-      }
-
-      // Update hasActed immediately
-      final players = List<Player>.from(_state.players);
-      final index = players.indexWhere((p) => p.id == senderId);
-      if (index != -1) {
-        players[index] = players[index].copyWith(hasActed: true);
-      }
-      _state = _state.copyWith(players: players);
-
-      if (action.type == 'commissar_check') {
-        final target = _state.players.firstWhereOrNull((p) => p.id == action.targetId);
-        if (target != null) {
-          gameLogger.logDetailed("Commissar/Sergeant investigated Player ${target.number}");
-          final isMafia = target.role.faction == Faction.mafia;
-          final message = {
-            'type': 'check_result',
-            'target_id': action.targetId,
-            'is_mafia': isMafia,
-          };
-          
-          // Send to both Commissar and Sergeant
-          final activePolice = _state.players.where((p) => p.role.type == RoleType.commissar || p.role.type == RoleType.sergeant).toList();
-          for (var cop in activePolice) {
-            websocketController.sendToClient(cop.id, message);
-          }
-          
-          // Reduce timer to 30s for review
-          if ((_state.timerSecondsRemaining ?? 0) > 30) {
-            _state = _state.copyWith(timerSecondsRemaining: 30);
-            websocketController.broadcast({'type': 'timer_update', 'seconds': 30});
-          }
-        }
-      } else if (action.type == 'commissar_kill') {
-        final target = _state.players.firstWhereOrNull((p) => p.id == action.targetId);
-        gameLogger.logDetailed('Commissar targeted Player ${target?.number ?? "unknown"} for kill. Ending phase.');
-        advancePhase();
+      final error = _nightFlowService.validateDoctorHeal(
+        state: _state,
+        senderId: senderId,
+        targetId: action.targetId,
+      );
+      if (error != null) {
+        websocketController.sendToClient(senderId, {
+          'type': 'error',
+          'message': error,
+        });
         return;
       }
     }
 
-    if (action.type == 'lawyer_check') {
-      if (sender.role.type != RoleType.lawyer) return;
-      
-      final target = _state.players.firstWhereOrNull((p) => p.id == action.targetId);
-      if (target != null) {
-        final isActiveTown = target.role.type == RoleType.commissar || target.role.type == RoleType.sergeant;
-        gameLogger.logDetailed("Lawyer investigated Player ${target.number} (Result: $isActiveTown)");
-        
-        final message = {
-          'type': 'lawyer_check_result',
-          'target_id': action.targetId,
-          'is_active_town': isActiveTown,
-        };
-        
-        // Send to the entire Mafia team
-        final mafiaFamily = _state.players.where((p) => p.role.faction == Faction.mafia).toList();
-        for (var member in mafiaFamily) {
-          websocketController.sendToClient(member.id, message);
-        }
-        
-        // Also update hasActed
-        final players = List<Player>.from(_state.players);
-        final index = players.indexWhere((p) => p.id == senderId);
-        if (index != -1) {
-          players[index] = players[index].copyWith(hasActed: true);
-        }
-        _state = _state.copyWith(players: players);
-        _checkAndAdvanceNightPhase();
+    if (action.type == 'mafia_kill') {
+      final allowed = _nightFlowService.canMafiaKill(
+        state: _state,
+        senderId: senderId,
+      );
+      if (!allowed) {
+        return;
       }
+    }
+
+    final buffered = _actionBufferService.bufferAction(
+      players: _state.players,
+      pendingActions: _state.pendingActions,
+      action: action.copyWith(performerId: senderId),
+    );
+
+    _state = _state.copyWith(
+      pendingActions: buffered.pendingActions,
+      players: buffered.players,
+    );
+
+    final nightResult = _nightFlowService.handleImmediateAction(
+      players: _state.players,
+      state: _state,
+      sender: sender,
+      action: action,
+      timerSecondsRemaining: _state.timerSecondsRemaining,
+    );
+
+    for (final log in nightResult.detailedLogs) {
+      gameLogger.logDetailed(log);
+    }
+
+    for (final message in nightResult.messages) {
+      for (final recipientId in message.recipientIds) {
+        websocketController.sendToClient(recipientId, message.payload);
+      }
+    }
+
+    if (nightResult.timerSecondsOverride != null) {
+      _state = _state.copyWith(
+        timerSecondsRemaining: nightResult.timerSecondsOverride,
+      );
+      websocketController.broadcast({
+        'type': 'timer_update',
+        'seconds': nightResult.timerSecondsOverride,
+      });
+    }
+
+    if (nightResult.advancePhase) {
+      advancePhase();
       return;
     }
 
-    if (action.type == 'don_check') {
-      if (!(sender.role is MafiaRole && (sender.role as MafiaRole).isDon)) return;
-      if (_state.config.donAction != DonAction.search) return;
+    if (nightResult.shouldCheckAdvance) {
+      _checkAndAdvanceNightPhase();
+      return;
+    }
 
-      final target = _state.players.firstWhereOrNull((p) => p.id == action.targetId);
-      if (target != null) {
-          final isCommissar = target.role.type == RoleType.commissar;
-          gameLogger.logDetailed("Don investigated Player ${target.number} (Result: $isCommissar)");
-
-          final message = {
-              'type': 'don_check_result',
-              'target_id': action.targetId,
-              'is_commissar': isCommissar,
-          };
-
-          // Send to the entire Mafia team
-          final mafiaFamily = _state.players.where((p) => p.role.faction == Faction.mafia).toList();
-          for (var member in mafiaFamily) {
-              websocketController.sendToClient(member.id, message);
-          }
-      }
+    if (nightResult.stopProcessing) {
       return;
     }
 
     if (action.type == 'commissar_ready') {
-      if (_state.currentMoveId != 'night_commissar') return;
+      if (!_commissarReadyService.isReadyEarly(
+        currentMoveId: _state.currentMoveId,
+      )) {
+        return;
+      }
       gameLogger.logDetailed('Police are ready. Ending phase early.');
       advancePhase();
       return;
@@ -432,52 +376,27 @@ class GameController {
     // If Don mechanics are DISABLED or Don is in SEARCH mode, we always sync Mafia votes for consensus
     if (action.type == 'mafia_kill' && (!_state.config.donMechanicsEnabled || _state.config.donAction == DonAction.search)) {
       final mafiaMembers = _state.players.where((p) => p.role.type == RoleType.mafia).map((p) => p.id).toSet();
+      final payload = _mafiaSyncService.buildSyncPayload(_state.pendingActions);
       for (var memberId in mafiaMembers) {
         websocketController.sendToClient(memberId, {
-          'type': 'mafia_sync_update',
-          'actions': updatedActions.where((a) => a.type == 'mafia_kill').map((a) => a.toJson()).toList(),
+          ...payload,
         });
       }
     }
 
     // Set hasActed for the player and check for early phase advancement
-    final updatedPlayersWithAction = List<Player>.from(_state.players);
-    final senderIndex = updatedPlayersWithAction.indexWhere((p) => p.id == senderId);
-    if (senderIndex != -1) {
-      updatedPlayersWithAction[senderIndex] = updatedPlayersWithAction[senderIndex].copyWith(hasActed: true);
-      _state = _state.copyWith(players: updatedPlayersWithAction);
-      _checkAndAdvanceNightPhase();
-    }
+    _checkAndAdvanceNightPhase();
   }
 
   void _checkAndAdvanceNightPhase() {
-    final phaseId = _state.phase.id;
-    if (phaseId != 'night') return;
-
-    final moveId = _state.currentMoveId;
-    final livingPlayers = _state.players.where((p) => p.isAlive).toList();
-    
-    bool allReady = false;
-    if (moveId == 'night_mafia') {
-      final mafiaAndLawyer = livingPlayers.where((p) => p.role.faction == Faction.mafia).toList();
-      allReady = mafiaAndLawyer.every((p) => p.hasActed);
-    } else if (moveId == 'night_prostitute') {
-      allReady = livingPlayers.where((p) => p.role.type == RoleType.prostitute).every((p) => p.hasActed);
-    } else if (moveId == 'night_maniac') {
-      allReady = livingPlayers.where((p) => p.role.type == RoleType.maniac).every((p) => p.hasActed);
-    } else if (moveId == 'night_doctor') {
-      allReady = livingPlayers.where((p) => p.role.type == RoleType.doctor).every((p) => p.hasActed);
-    } else if (moveId == 'night_poisoner') {
-      allReady = livingPlayers.where((p) => p.role.type == RoleType.poisoner).every((p) => p.hasActed);
-    } else if (moveId == 'night_commissar') {
-      final police = livingPlayers.where((p) => p.role.type == RoleType.commissar || p.role.type == RoleType.sergeant).toList();
-      allReady = police.every((p) => p.hasActed);
+    if (!_nightFlowService.isReadyToAdvance(_state)) {
+      return;
     }
-
-    if (allReady) {
-      gameLogger.logDetailed('All required players for $moveId have acted. Advancing phase.');
-      advancePhase();
-    }
+    final moveId = _state.currentMoveId ?? 'unknown';
+    gameLogger.logDetailed(
+      'All required players for $moveId have acted. Advancing phase.',
+    );
+    advancePhase();
   }
 
   void removePlayer(String playerId) {
@@ -499,17 +418,12 @@ class GameController {
     _state = _state.copyWith(players: [..._state.players, player]);
   }
 
-  String _generateSessionId() {
-    final rand = Random();
-    return List.generate(6, (_) => (rand.nextInt(10)).toString()).join();
-  }
-
   void resetGame() {
     audioController.stopBackgroundMusic();
     audioController.playBackgroundMusic(GamePhase.lobby);
     
     _state = GameState(
-      sessionId: _generateSessionId(),
+      sessionId: _sessionService.generateSessionId(),
       phase: GamePhase.lobby,
       config: _state.config,
       players: _state.players.map((p) => p.copyWith(
@@ -549,7 +463,8 @@ class GameController {
       gameLogger.logDetailed('Error loading theme: $e', level: 1000);
     }
 
-    final roles = distributeRoles(_state.players.length, config);
+    final roles =
+        _roleDistributionService.distributeRoles(_state.players.length, config);
     final shuffledRoles = List<Role>.from(roles)..shuffle();
     
     final updatedPlayers = <Player>[];
@@ -579,38 +494,31 @@ class GameController {
   }
   
   void _handlePlayerJoin(String senderId, Map<String, dynamic> message) {
-    if (_state.phase != GamePhase.lobby) {
-      websocketController.sendToClient(senderId, {
-        'type': 'error',
-        'message': 'Game already in progress',
-      });
-      return;
-    }
-    
     final sid = message['game_session_id'] as String?;
-    if (sid != null && sid != _state.sessionId) {
+    final nickname = message['nickname'] as String? ?? 'Unknown';
+    final result = _sessionService.handleJoin(
+      state: _state,
+      senderId: senderId,
+      nickname: nickname,
+      providedSessionId: sid,
+    );
+
+    if (result.rejected) {
       websocketController.sendToClient(senderId, {
         'type': 'error',
-        'message': 'Wrong game session',
+        'message': result.errorMessage ?? 'Join rejected',
       });
       return;
     }
-    
-    final nickname = message['nickname'] as String? ?? 'Unknown';
-    final newPlayer = Player(
-      id: senderId,
-      number: _state.players.length + 1,
-      nickname: nickname,
-      role: const CivilianRole(), 
-    );
-    addPlayer(newPlayer);
-    
-    final token = 'token-${Random().nextInt(10000)}';
-    websocketController.registerSession(senderId, token);
+
+    _state = _state.copyWith(players: result.updatedPlayers);
+    if (result.sessionToken != null) {
+      websocketController.registerSession(senderId, result.sessionToken!);
+    }
     websocketController.sendToClient(senderId, {
       'type': 'join_success',
       'player_id': senderId,
-      'session_token': token,
+      'session_token': result.sessionToken,
     });
   }
 
@@ -922,283 +830,85 @@ class GameController {
   }
 
   Future<void> resolveNightActions() async {
-    // 0. Initial Setup
     final actions = _state.pendingActions;
-    gameLogger.logDetailed('Resolving night actions: ${actions.length} received');
-    final healedIds = <String>{};
-    final blockedIds = <String>{};
-    final killedIds = <String>{}; // Stores (targetId)
-    final players = List<Player>.from(_state.players);
+    gameLogger.logDetailed(
+      'Resolving night actions: ${actions.length} received',
+    );
+    final result = _nightFlowService.resolve(
+      players: _state.players,
+      actions: actions,
+      config: _state.config,
+    );
+    final players = result.players;
+    final trapVictimIds = result.trapVictimIds;
 
-    // 1. Prostitute blocks
-    for (var action in actions.where((a) => a.type == 'prostitute_block')) {
-      if (action.targetId != null) blockedIds.add(action.targetId!);
+    for (final log in result.detailedLogs) {
+      gameLogger.logDetailed(log);
     }
 
-    // 2. Poisoner "Likho" Trap (Immediate Resolution)
-    String? poisonedTargetId;
-    String? poisonerId;
-    final poisonAction = actions.firstWhereOrNull((a) => a.type == 'poison');
-    if (poisonAction != null && !blockedIds.contains(poisonAction.performerId)) {
-        poisonedTargetId = poisonAction.targetId;
-        poisonerId = poisonAction.performerId;
-        if (poisonedTargetId != null) {
-            killedIds.add(poisonedTargetId);
-            gameLogger.logDetailed('Player ${players.firstWhere((p) => p.id == poisonedTargetId).number} was poisoned (Likho target).');
-        }
+    if (result.mafiaNoConsensus) {
+      gameLogger.logPublic('Mafia could not reach a consensus tonight.');
+    }
+    if (result.mafiaMissed) {
+      await _playEvent('mafia_miss');
     }
 
-    // 3. Interaction Trap: Check all actions to see if they touched the poisoned target
-    final trapVictimIds = <String>{};
-    if (poisonedTargetId != null) {
-        for (var action in actions) {
-            // If someone interacted with the poisoned target, they also die
-            if (action.targetId == poisonedTargetId && action.performerId != poisonerId) {
-                killedIds.add(action.performerId);
-                trapVictimIds.add(action.performerId);
-                gameLogger.logDetailed('Player ${players.firstWhere((p) => p.id == action.performerId).number} touched the poisoned target and also died.');
-            }
-        }
+    final announcements = _nightFlowService.buildAnnouncements(
+      players: players,
+      actions: actions,
+      resolution: result,
+    );
+    for (final event in announcements.compositeEvents) {
+      await _playCompositeEvent(event);
     }
-
-    // 4. Mafia kill
-    final mafiaActions = actions.where((a) => a.type == 'mafia_kill').toList();
-    if (mafiaActions.isNotEmpty) {
-      final livingMafia = players.where((p) => p.isAlive && p.role.type == RoleType.mafia).toList();
-      
-      bool mafiaBlocked = false;
-      if (_state.config.donMechanicsEnabled) {
-        final don = livingMafia.firstWhereOrNull((p) => (p.role as MafiaRole).isDon);
-        if (don != null && blockedIds.contains(don.id)) {
-          mafiaBlocked = true;
-          gameLogger.logDetailed('Mafia blocked: Don ${don.nickname} was visited by Prostitute.');
-        }
-      }
-
-      if (!mafiaBlocked) {
-        if (!_state.config.donMechanicsEnabled || _state.config.donAction == DonAction.search) {
-          final targetCounts = <String, int>{};
-          for (var action in mafiaActions) {
-            if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-              targetCounts[action.targetId!] = (targetCounts[action.targetId!] ?? 0) + 1;
-            }
-          }
-          
-          final consensusTargetId = targetCounts.entries.firstWhereOrNull((e) => e.value == livingMafia.length)?.key;
-          if (consensusTargetId != null) {
-            killedIds.add(consensusTargetId);
-          } else {
-            gameLogger.logPublic('Mafia could not reach a consensus tonight.');
-            await _playEvent('mafia_miss');
-          }
-        } else {
-          // If NOT blind mode, any kill works, but if there are multiple, usually first one counts or we might need consensus too 
-          // depending on exact rules. Assuming "first valid action" applies here as per existing logic.
-          // BUT if mafia actions list is empty but mafia are alive, then they missed.
-          bool anyAction = false;
-          for (var action in mafiaActions) {
-            if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-              killedIds.add(action.targetId!);
-              anyAction = true;
-              break;
-            }
-          }
-          if (!anyAction && livingMafia.isNotEmpty) {
-             await _playEvent('mafia_miss');
-          }
-        }
-      }
-    } else {
-       // Mafia actions list empty, but check if mafia are alive
-       final livingMafia = players.where((p) => p.isAlive && p.role.type == RoleType.mafia).toList();
-       if (livingMafia.isNotEmpty) {
-           await _playEvent('mafia_miss');
-       }
+    for (final event in announcements.audioEvents) {
+      await _playEvent(event);
     }
-
-    for (var action in actions.where((a) => a.type == 'maniac_kill')) {
-      if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-        killedIds.add(action.targetId!);
-      }
-    }
-
-    if (_state.config.commissarKills) {
-      for (var action in actions.where((a) => a.type == 'commissar_kill')) {
-        if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-          killedIds.add(action.targetId!);
-          gameLogger.logDetailed('Commissar killed Player ${_state.players.firstWhere((p) => p.id == action.targetId).number}');
-        }
-      }
-    }
-
-    String? currentNightDoctorTargetId;
-    for (var action in actions.where((a) => a.type == 'doctor_heal')) {
-      if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-        healedIds.add(action.targetId!);
-        currentNightDoctorTargetId = action.targetId;
-      }
-    }
-
-    // 4. Prostitute Announcements
-    for (var action in actions.where((a) => a.type == 'prostitute_block')) {
-      if (action.targetId != null) {
-        final target = players.firstWhere((p) => p.id == action.targetId);
-        await _playCompositeEvent(['prostitute_visit', 'role_name_${target.role.type.name}']);
-      }
-    }
-
-    // 5. Poisoner Action Announcement (The visit itself)
-    if (poisonAction != null && !blockedIds.contains(poisonAction.performerId)) {
-        final target = players.firstWhere((p) => p.id == poisonedTargetId);
-        await _playCompositeEvent(['poisoner_visit', 'player_${target.number}']);
-        gameLogger.logPublic("The Poisoner visited Player ${target.number}.");
-    }
-    
-    // 6. Mafia/Lawyer/Don Checks
-    for (var action in actions) {
-        if (blockedIds.contains(action.performerId)) continue;
-        final target = players.firstWhereOrNull((p) => p.id == action.targetId);
-        if (target == null) continue;
-
-        if (action.type == 'lawyer_check') {
-            await _playCompositeEvent(['lawyer_visit', 'player_${target.number}']);
-            gameLogger.logPublic("Lawyer investigated Player ${target.number}");
-        } else if (action.type == 'don_check') {
-            await _playCompositeEvent(['don_visit', 'player_${target.number}']);
-            gameLogger.logPublic("Don investigated Player ${target.number}");
-        }
-    }
-
-    // 7. Police Checks (Commissar/Sergeant)
-    for (var action in actions) {
-        if (blockedIds.contains(action.performerId)) continue;
-        final target = players.firstWhereOrNull((p) => p.id == action.targetId);
-        if (target == null) continue;
-
-        if (action.type == 'commissar_check') {
-            final performer = players.firstWhere((p) => p.id == action.performerId);
-            final event = (performer.role.type == RoleType.sergeant) ? 'sergeant_visit' : 'commissar_visit';
-            await _playCompositeEvent([event, 'player_${target.number}']);
-            gameLogger.logPublic("${performer.role.type == RoleType.sergeant ? 'Sergeant' : 'Commissar'} investigated Player ${target.number}");
-        }
-    }
-
-    // 8. Maniac Deaths (Announcement of the kill itself if any)
-    for (var action in actions.where((a) => a.type == 'maniac_kill')) {
-        if (!blockedIds.contains(action.performerId) && action.targetId != null) {
-            // We don't reveal the death here yet, just that maniac visited? 
-            // Actually usually we just announce deaths at the end.
-        }
-    }
-
-    // 9. Doctor Announcements
-    for (var healId in healedIds) {
-        final target = players.firstWhere((p) => p.id == healId);
-        if (killedIds.contains(healId)) {
-            await _playCompositeEvent(['doctor_heal_success', 'player_${target.number}']);
-            gameLogger.logPublic("Doctor saved ${target.nickname}!");
-        } else {
-            await _playEvent('doctor_heal_fail');
-        }
+    for (final log in announcements.publicLogs) {
+      gameLogger.logPublic(log);
     }
 
     // 8. Deaths
-    final actualKilledIds = killedIds.where((id) => !healedIds.contains(id)).toSet();
-    final eventLogs = <String>[];
+    final eventLogs = List<String>.from(result.publicLogs);
+    for (final log in eventLogs) {
+      gameLogger.logPublic(log);
+    }
 
     for (var i = 0; i < players.length; i++) {
-      if (actualKilledIds.contains(players[i].id)) {
-        players[i] = players[i].copyWith(isAlive: false);
-        final log = "Morning begins. ${players[i].nickname} was found dead.";
-        eventLogs.add(log);
-        gameLogger.logPublic(log);
-        
-        bool killedByManiac = actions.any((a) => a.type == 'maniac_kill' && !blockedIds.contains(a.performerId) && a.targetId == players[i].id);
-        bool killedByPoison = poisonAction != null && poisonAction.targetId == players[i].id;
-        bool killedByTrap = trapVictimIds.contains(players[i].id);
+      if (result.actualKilledIds.contains(players[i].id)) {
+        final killedByManiac =
+            result.killedByManiacIds.contains(players[i].id);
+        final killedByPoison =
+            result.killedByPoisonIds.contains(players[i].id);
+        final killedByTrap = trapVictimIds.contains(players[i].id);
 
         if (killedByManiac) {
-            await _playCompositeEvent(['maniac_kill', 'player_${players[i].number}']);
+          await _playCompositeEvent(['maniac_kill', 'player_${players[i].number}']);
         } else if (killedByPoison) {
-            await _playCompositeEvent(['poison_death', 'player_${players[i].number}']);
+          await _playCompositeEvent(['poison_death', 'player_${players[i].number}']);
         } else if (killedByTrap) {
-            await _playCompositeEvent(['role_name_${players[i].role.type.name}', 'poisoner_interaction']);
+          await _playCompositeEvent(['role_name_${players[i].role.type.name}', 'poisoner_interaction']);
         } else {
-            await _playCompositeEvent(['player_killed', 'player_${players[i].number}']);
+          await _playCompositeEvent(['player_killed', 'player_${players[i].number}']);
         }
       }
     }
 
-    if (actualKilledIds.isEmpty) {
-      final log = "Morning begins. Everyone is alive.";
-      eventLogs.add(log);
-      gameLogger.logPublic(log);
+    if (result.actualKilledIds.isEmpty) {
       await _playEvent('nobody_killed');
     }
 
     _transferDonRoleIfNecessary(players);
 
     // Check for missed actions (Alive but no action)
-    final livingCommissar = players.any((p) => p.isAlive && p.role.type == RoleType.commissar);
-    if (livingCommissar) {
-        final hasAction = actions.any((a) => a.type == 'commissar_check');
-        if (!hasAction) {
-            await _playEvent('commissar_miss');
-        }
-    }
-
-    final livingDoctor = players.any((p) => p.isAlive && p.role.type == RoleType.doctor);
-    if (livingDoctor) {
-        final hasAction = actions.any((a) => a.type == 'doctor_heal');
-        if (!hasAction) {
-             await _playEvent('doctor_miss');
-        }
-    }
-
-    final livingProstitute = players.any((p) => p.isAlive && p.role.type == RoleType.prostitute);
-    if (livingProstitute) {
-        final hasAction = actions.any((a) => a.type == 'prostitute_block');
-        if (!hasAction) {
-             await _playEvent('prostitute_miss');
-        }
-    }
-
-    final livingManiac = players.any((p) => p.isAlive && p.role.type == RoleType.maniac);
-    if (livingManiac) {
-        final hasAction = actions.any((a) => a.type == 'maniac_kill');
-        if (!hasAction) {
-             await _playEvent('maniac_miss');
-        }
-    }
-
-    final livingPoisoner = players.any((p) => p.isAlive && p.role.type == RoleType.poisoner);
-    if (livingPoisoner) {
-        final hasAction = actions.any((a) => a.type == 'poison');
-        if (!hasAction) {
-             await _playEvent('poisoner_miss');
-        }
-    }
-
-    final livingLawyer = players.any((p) => p.isAlive && p.role.type == RoleType.lawyer);
-    if (livingLawyer) {
-        final hasAction = actions.any((a) => a.type == 'lawyer_check');
-        if (!hasAction) {
-             await _playEvent('lawyer_miss');
-        }
-    }
-
-    final livingSergeant = players.any((p) => p.isAlive && p.role.type == RoleType.sergeant);
-    if (livingSergeant) {
-        final hasAction = actions.any((a) => a.type == 'commissar_check');
-        if (!hasAction) {
-             await _playEvent('sergeant_miss');
-        }
+    for (final eventKey in result.missedEventKeys) {
+      await _playEvent(eventKey);
     }
 
     _state = _state.copyWith(
       players: players,
       pendingActions: [],
-      lastDoctorTargetId: currentNightDoctorTargetId,
+      lastDoctorTargetId: result.currentNightDoctorTargetId,
       publicEventLog: [..._state.publicEventLog, ...eventLogs],
     );
   }
@@ -1249,70 +959,7 @@ class GameController {
   }
 
   List<Role> distributeRoles(int playerCount, GameConfig config) {
-    final roles = <Role>[];
-    
-    // 1. Determine Mafia Count (Classic balance)
-    int mafiaCount;
-    if (playerCount <= 5) {
-      mafiaCount = 1;
-    } else if (playerCount <= 8) {
-      mafiaCount = 2;
-    } else {
-      mafiaCount = (playerCount / 3).floor();
-    }
-    
-    if (config.mafiaCount != null) {
-      mafiaCount = config.mafiaCount!;
-    }
-    
-    for (var i = 0; i < mafiaCount; i++) {
-      roles.add(MafiaRole(isDon: config.donMechanicsEnabled && i == 0));
-    }
-    
-    // Helper to check if role should be added
-    bool shouldAdd(bool enabled, int minPlayers) {
-      if (!enabled) return false;
-      if (!config.autoPruningEnabled) return true;
-      return playerCount >= minPlayers;
-    }
-
-    // 2. Active Town Roles
-    if (shouldAdd(config.commissarEnabled, 3)) {
-      roles.add(const CommissarRole());
-    }
-    
-    if (shouldAdd(config.doctorEnabled, 4)) {
-      roles.add(const DoctorRole());
-    }
-
-    if (shouldAdd(config.prostituteEnabled, 5)) {
-      roles.add(const ProstituteRole());
-    }
-
-    if (shouldAdd(config.sergeantEnabled, 6)) {
-      roles.add(const SergeantRole());
-    }
-
-    if (shouldAdd(config.lawyerEnabled, 7)) {
-      roles.add(const LawyerRole());
-    }
-
-    if (shouldAdd(config.poisonerEnabled, 8)) {
-      roles.add(const PoisonerRole());
-    }
-    
-    if (shouldAdd(config.maniacEnabled, 9)) {
-      roles.add(const ManiacRole());
-    }
-    
-    // 3. Fill the rest with Civilians (Residents)
-    while (roles.length < playerCount) {
-      roles.add(const CivilianRole());
-    }
-    
-    // Defensive check: if we somehow exceeded playerCount (e.g. manual counts + fixed roles)
-    // We prioritize Mafia > Commissar > Doctor > etc.
-    return roles.take(playerCount).toList();
+    return _roleDistributionService.distributeRoles(playerCount, config);
   }
 
   void pauseGame() {

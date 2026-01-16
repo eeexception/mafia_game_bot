@@ -6,6 +6,7 @@ import '../../../core/state/providers.dart';
 import '../../../core/models/game_state.dart';
 import '../../../core/models/player.dart';
 import '../../../core/models/game_phase.dart';
+import '../../../core/models/vote_tally.dart';
 import 'victory_screen.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -60,6 +61,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameStateProvider);
+    final voteTally = ref.watch(voteTallyProvider);
     final l10n = AppLocalizations.of(context)!;
     final audio = ref.read(audioControllerProvider);
 
@@ -110,8 +112,14 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
                   flex: 3,
                   child: Column(
                     children: [
-                      _buildPhaseHeader(context, gameState),
-                      Expanded(child: _buildPlayerGrid(context, gameState)),
+                      _buildPhaseHeader(context, gameState, voteTally),
+                      Expanded(
+                        child: _buildPlayerGrid(
+                          context,
+                          gameState,
+                          voteTally,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -171,7 +179,11 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
     );
   }
 
-  Widget _buildPhaseHeader(BuildContext context, GameState state) {
+  Widget _buildPhaseHeader(
+    BuildContext context,
+    GameState state,
+    VoteTally voteTally,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final isNight = state.phase.id == 'night';
     return Container(
@@ -260,14 +272,14 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _VerdictTally(
-                  label: l10n.votesCast, 
-                  count: state.currentVotes?.length ?? 0,
+                  label: l10n.votesCast,
+                  count: voteTally.totalVotes,
                   color: Colors.amberAccent,
                 ),
                 const SizedBox(width: 48),
                 _VerdictTally(
-                  label: l10n.remaining, 
-                  count: state.players.where((p) => p.isAlive).length - (state.currentVotes?.length ?? 0),
+                  label: l10n.remaining,
+                  count: voteTally.remainingVotes,
                   color: Colors.white24,
                 ),
               ],
@@ -278,22 +290,13 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
     );
   }
 
-  Widget _buildPlayerGrid(BuildContext context, GameState state) {
-    final votes = state.currentVotes ?? {};
-    final voteCounts = <String, int>{};
-    votes.forEach((voterId, targetId) {
-      voteCounts[targetId] = (voteCounts[targetId] ?? 0) + 1;
-    });
-
-    int maxVotes = 0;
-    for (final count in voteCounts.values) {
-      if (count > maxVotes) maxVotes = count;
-    }
-
-    final topAccusedIds = maxVotes > 0 
-        ? voteCounts.entries.where((e) => e.value == maxVotes).map((e) => e.key).toSet() 
-        : <String>{};
-
+  Widget _buildPlayerGrid(
+    BuildContext context,
+    GameState state,
+    VoteTally voteTally,
+  ) {
+    final voteCounts = voteTally.voteCounts;
+    final topAccusedIds = voteTally.topTargetIds;
     return Padding(
       padding: const EdgeInsets.all(32.0),
       child: GridView.builder(
@@ -306,8 +309,10 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
         itemCount: state.players.length,
         itemBuilder: (context, index) {
           final player = state.players[index];
-          final targetId = votes[player.id];
-          final target = targetId != null ? state.players.firstWhereOrNull((p) => p.id == targetId) : null;
+          final targetId = state.currentVotes?[player.id];
+          final target = targetId != null
+              ? state.players.firstWhereOrNull((p) => p.id == targetId)
+              : null;
           final accusedCount = voteCounts[player.id] ?? 0;
           final isTopAccused = topAccusedIds.contains(player.id);
 

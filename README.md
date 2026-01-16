@@ -90,6 +90,19 @@ lib/
 └── main_client.dart     # Client PWA entry point
 ```
 
+### Notable Core Controllers/Services
+
+*   **GameController**: Orchestrates state transitions and delegates to core flow services.
+*   **NightFlowService**: Night readiness, immediate actions, resolution, and announcements.
+*   **VotingService**: Ready-to-vote, day votes, and verdict processing.
+*   **SessionService**: Session id generation and join validation.
+*   **RoleDistributionService**: Role distribution and balancing rules.
+
+## 📚 Design Docs
+
+*   Class diagram: `docs/CLASS_DIAGRAM.md`
+*   Flow diagrams: `docs/flow/`
+
 ## ⚙️ Getting Started
 
 ### Prerequisites

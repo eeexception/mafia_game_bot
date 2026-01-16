@@ -12,14 +12,17 @@ import '../controllers/audio_controller.dart';
 import '../controllers/theme_controller.dart';
 import '../controllers/websocket_controller.dart';
 import '../controllers/game_controller.dart';
+import '../controllers/vote_counter.dart';
 import 'package:mafia_game/core/state/game_state_notifier.dart';
 import 'package:mafia_game/core/models/game_state.dart';
 import 'package:mafia_game/core/models/theme_config.dart';
+import 'package:mafia_game/core/models/vote_tally.dart';
 
 import '../controllers/win_detector.dart';
 
 // Services
 final winDetectorProvider = Provider((ref) => WinDetector());
+final voteCounterProvider = Provider((ref) => const VoteCounter());
 final audioManagerProvider = Provider((ref) => AudioManager());
 final themeLoaderProvider = Provider((ref) => ThemeLoader());
 final storageServiceProvider = Provider((ref) => StorageService());
@@ -38,6 +41,15 @@ final clientGameStateProvider = Provider<GameState?>((ref) {
 });
 
 final gameLogsProvider = StateProvider<List<String>>((ref) => []);
+final voteTallyProvider = Provider<VoteTally>((ref) {
+  final state = ref.watch(gameStateProvider);
+  final counter = ref.watch(voteCounterProvider);
+  final livingPlayers = state.players.where((p) => p.isAlive).length;
+  return counter.tally(
+    state.currentVotes,
+    livingPlayersCount: livingPlayers,
+  );
+});
 
 // A provider that handles global WebSocket signal listening for the client
 final clientWebSocketListenerProvider = Provider((ref) {

@@ -14,7 +14,7 @@ void main() {
       expect(config.discussionTime, equals(120));
       expect(config.votingTime, equals(60));
       expect(config.defenseTime, equals(60));
-      expect(config.mafiaActionTime, equals(90));
+      expect(config.mafiaActionTime, equals(60));
       expect(config.otherActionTime, equals(60));
     });
 

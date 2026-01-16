@@ -10,6 +10,9 @@ _GameConfig _$GameConfigFromJson(Map<String, dynamic> json) => _GameConfig(
   themeId: json['themeId'] as String,
   autoPruningEnabled: json['autoPruningEnabled'] as bool? ?? true,
   donMechanicsEnabled: json['donMechanicsEnabled'] as bool? ?? false,
+  donAction:
+      $enumDecodeNullable(_$DonActionEnumMap, json['donAction']) ??
+      DonAction.kill,
   commissarEnabled: json['commissarEnabled'] as bool? ?? true,
   doctorEnabled: json['doctorEnabled'] as bool? ?? true,
   prostituteEnabled: json['prostituteEnabled'] as bool? ?? false,
@@ -25,8 +28,9 @@ _GameConfig _$GameConfigFromJson(Map<String, dynamic> json) => _GameConfig(
   discussionTime: (json['discussionTime'] as num?)?.toInt() ?? 120,
   votingTime: (json['votingTime'] as num?)?.toInt() ?? 60,
   defenseTime: (json['defenseTime'] as num?)?.toInt() ?? 60,
-  mafiaActionTime: (json['mafiaActionTime'] as num?)?.toInt() ?? 90,
+  mafiaActionTime: (json['mafiaActionTime'] as num?)?.toInt() ?? 60,
   otherActionTime: (json['otherActionTime'] as num?)?.toInt() ?? 60,
+  verdictTime: (json['verdictTime'] as num?)?.toInt() ?? 60,
   mafiaCount: (json['mafiaCount'] as num?)?.toInt(),
   commissarCount: (json['commissarCount'] as num?)?.toInt(),
   doctorCount: (json['doctorCount'] as num?)?.toInt(),
@@ -37,6 +41,7 @@ Map<String, dynamic> _$GameConfigToJson(_GameConfig instance) =>
       'themeId': instance.themeId,
       'autoPruningEnabled': instance.autoPruningEnabled,
       'donMechanicsEnabled': instance.donMechanicsEnabled,
+      'donAction': _$DonActionEnumMap[instance.donAction]!,
       'commissarEnabled': instance.commissarEnabled,
       'doctorEnabled': instance.doctorEnabled,
       'prostituteEnabled': instance.prostituteEnabled,
@@ -54,7 +59,10 @@ Map<String, dynamic> _$GameConfigToJson(_GameConfig instance) =>
       'defenseTime': instance.defenseTime,
       'mafiaActionTime': instance.mafiaActionTime,
       'otherActionTime': instance.otherActionTime,
+      'verdictTime': instance.verdictTime,
       'mafiaCount': instance.mafiaCount,
       'commissarCount': instance.commissarCount,
       'doctorCount': instance.doctorCount,
     };
+
+const _$DonActionEnumMap = {DonAction.kill: 'kill', DonAction.search: 'search'};

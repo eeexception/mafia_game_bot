@@ -500,6 +500,12 @@ abstract class AppLocalizations {
   /// **'Role Reveal'**
   String get phaseRoleReveal;
 
+  /// No description provided for @phaseNightStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The city falls asleep...'**
+  String get phaseNightStart;
+
   /// No description provided for @phaseNightMafia.
   ///
   /// In en, this message translates to:
@@ -835,6 +841,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'THE CITY IS SLEEPING...'**
   String get cityIsSleeping;
+
+  /// No description provided for @donActionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t Action Type'**
+  String get donActionLabel;
+
+  /// No description provided for @donActionKill.
+  ///
+  /// In en, this message translates to:
+  /// **'Kill'**
+  String get donActionKill;
+
+  /// No description provided for @donActionSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get donActionSearch;
+
+  /// No description provided for @confirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM ACTION'**
+  String get confirmAction;
+
+  /// No description provided for @confirmDonCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM DON CHECK'**
+  String get confirmDonCheck;
+
+  /// No description provided for @confirmVote.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM VOTE'**
+  String get confirmVote;
+
+  /// No description provided for @confirmVerdict.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM VERDICT'**
+  String get confirmVerdict;
+
+  /// No description provided for @voteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'VOTE TO EXECUTE'**
+  String get voteAction;
+
+  /// No description provided for @verdictAction.
+  ///
+  /// In en, this message translates to:
+  /// **'CASE VERDICT'**
+  String get verdictAction;
+
+  /// No description provided for @maniacAction.
+  ///
+  /// In en, this message translates to:
+  /// **'MANIAC ACTION (KILL)'**
+  String get maniacAction;
 }
 
 class _AppLocalizationsDelegate

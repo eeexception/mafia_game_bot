@@ -3,6 +3,12 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'game_config.freezed.dart';
 part 'game_config.g.dart';
 
+/// Action type for the Mafia Don
+enum DonAction {
+  kill,
+  search,
+}
+
 /// Configuration for a game session
 @freezed
 abstract class GameConfig with _$GameConfig {
@@ -10,6 +16,7 @@ abstract class GameConfig with _$GameConfig {
     required String themeId,
     @Default(true) bool autoPruningEnabled,
     @Default(false) bool donMechanicsEnabled,
+    @Default(DonAction.kill) DonAction donAction,
     @Default(true) bool commissarEnabled,
     @Default(true) bool doctorEnabled,
     @Default(false) bool prostituteEnabled,
@@ -26,8 +33,9 @@ abstract class GameConfig with _$GameConfig {
     @Default(120) int discussionTime,
     @Default(60) int votingTime,
     @Default(60) int defenseTime,
-    @Default(90) int mafiaActionTime,
+    @Default(60) int mafiaActionTime,
     @Default(60) int otherActionTime,
+    @Default(60) int verdictTime,
     
     // Role distribution (null = auto-balance)
     int? mafiaCount,

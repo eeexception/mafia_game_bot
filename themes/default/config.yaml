@@ -409,6 +409,9 @@ audio:
         text: "10 seconds remaining"
     
     countdown:
+      ten:
+        file: "countdown_10.mp3"
+        text: "10"
       nine:
         file: "countdown_9.mp3"
         text: "9"

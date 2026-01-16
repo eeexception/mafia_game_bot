@@ -46,14 +46,14 @@ class VerdictPanel extends StatelessWidget {
               icon: Icons.favorite,
               color: Colors.green,
               isSelected: selectedTargetId == 'pardon',
-              onTap: () => onTargetSelected('pardon'),
+              onTap: me.hasActed ? null : () => onTargetSelected('pardon'),
             ),
             _buildVerdictButton(
               label: 'EXECUTE',
               icon: Icons.gavel,
               color: Colors.red,
               isSelected: selectedTargetId == 'execute',
-              onTap: () => onTargetSelected('execute'),
+              onTap: me.hasActed ? null : () => onTargetSelected('execute'),
             ),
           ],
         ),
@@ -66,7 +66,7 @@ class VerdictPanel extends StatelessWidget {
     required IconData icon,
     required Color color,
     required bool isSelected,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,

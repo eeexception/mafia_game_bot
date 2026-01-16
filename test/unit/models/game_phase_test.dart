@@ -2,22 +2,44 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mafia_game/core/models/game_phase.dart';
 
 void main() {
-  group('GamePhase', () {
-    test('contains all required phases', () {
-      expect(GamePhase.values.length, equals(13));
-      expect(GamePhase.lobby, isNotNull);
-      expect(GamePhase.setup, isNotNull);
-      expect(GamePhase.nightMafia, isNotNull);
-      expect(GamePhase.nightProstitute, isNotNull);
-      expect(GamePhase.nightManiac, isNotNull);
-      expect(GamePhase.nightDoctor, isNotNull);
-      expect(GamePhase.nightCommissar, isNotNull);
-      expect(GamePhase.morning, isNotNull);
-      expect(GamePhase.dayDiscussion, isNotNull);
-      expect(GamePhase.dayVoting, isNotNull);
-      expect(GamePhase.dayDefense, isNotNull);
-      expect(GamePhase.dayVerdict, isNotNull);
-      expect(GamePhase.gameOver, isNotNull);
+  group('GamePhase Hierarchy', () {
+    test('Static constants exist and have correct IDs', () {
+      expect(GamePhase.lobby.id, equals('lobby'));
+      expect(GamePhase.setup.id, equals('setup'));
+      expect(GamePhase.roleReveal.id, equals('roleReveal'));
+      expect(GamePhase.night.id, equals('night'));
+      expect(GamePhase.day.id, equals('day'));
+      expect(GamePhase.gameOver.id, equals('gameOver'));
+    });
+
+    test('LobbyPhase properties', () {
+      const phase = LobbyPhase();
+      expect(phase.id, equals('lobby'));
+      expect(phase.nameKey, equals('phaseLobby'));
+    });
+
+    test('NightGamePhase properties', () {
+      const phase = NightGamePhase(moves: []);
+      expect(phase.id, equals('night'));
+      expect(phase.nameKey, equals('phaseNight'));
+    });
+
+    test('DayGamePhase properties', () {
+      const phase = DayGamePhase(moves: []);
+      expect(phase.id, equals('day'));
+      expect(phase.nameKey, equals('phaseDay'));
+    });
+
+    test('GamePhaseConverter works for basic phases', () {
+      const converter = GamePhaseConverter();
+      
+      expect(converter.fromJson('lobby'), isA<LobbyPhase>());
+      expect(converter.fromJson('night'), isA<NightGamePhase>());
+      expect(converter.fromJson('day'), isA<DayGamePhase>());
+      expect(converter.fromJson('gameOver'), isA<GameOverPhase>());
+      
+      expect(converter.toJson(const LobbyPhase()), equals('lobby'));
+      expect(converter.toJson(const NightGamePhase(moves: [])), equals('night'));
     });
   });
 }

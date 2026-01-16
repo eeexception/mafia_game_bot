@@ -119,6 +119,26 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   value: _config.donMechanicsEnabled,
                   onChanged: (v) => setState(() => _config = _config.copyWith(donMechanicsEnabled: v)),
                 ),
+                if (_config.donMechanicsEnabled)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 48, right: 16, bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(l10n.donActionLabel),
+                        DropdownButton<DonAction>(
+                          value: _config.donAction,
+                          items: [
+                            DropdownMenuItem(value: DonAction.kill, child: Text(l10n.donActionKill)),
+                            DropdownMenuItem(value: DonAction.search, child: Text(l10n.donActionSearch)),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setState(() => _config = _config.copyWith(donAction: v));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 SwitchListTile(
                   title: Text(l10n.commissarKills),
                   subtitle: Text(l10n.commissarKillsSubtitle),

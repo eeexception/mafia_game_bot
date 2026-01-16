@@ -68,7 +68,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
       if (previous != next) {
         audio.playBackgroundMusic(next);
         
-        if (next == GamePhase.gameOver) {
+        if (next is GameOverPhase) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const VictoryScreen()),
           );
@@ -173,7 +173,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
 
   Widget _buildPhaseHeader(BuildContext context, GameState state) {
     final l10n = AppLocalizations.of(context)!;
-    final isNight = state.phase.name.contains('night');
+    final isNight = state.phase.id == 'night';
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 48),
       decoration: BoxDecoration(
@@ -194,7 +194,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            _getPhaseName(state.phase, l10n).toUpperCase(),
+            _getPhaseName(state, l10n).toUpperCase(),
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
               color: Colors.white,
               letterSpacing: 4,
@@ -230,7 +230,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
               ),
             ),
 
-          if (state.phase == GamePhase.dayVerdict && state.verdictTargetId != null) ...[
+          if ((state.currentMoveId == 'day_verdict') && state.verdictTargetId != null) ...[
               const SizedBox(height: 24),
               Text(
                 l10n.judgingPlayer(state.players.firstWhere((p) => p.id == state.verdictTargetId).number),
@@ -254,7 +254,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
                 ],
               )
           ],
-          if (state.phase == GamePhase.dayVoting) ...[
+          if (state.currentMoveId == 'day_voting') ...[
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -315,7 +315,7 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
             player: player,
             votingFor: target?.number,
             votesAgainst: accusedCount,
-            isHighlighted: isTopAccused && state.phase == GamePhase.dayVoting,
+            isHighlighted: isTopAccused && state.currentMoveId == 'day_voting',
           );
         },
       ),
@@ -356,23 +356,26 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen> {
     );
   }
 
-  String _getPhaseName(GamePhase phase, AppLocalizations l10n) {
-    switch (phase) {
-      case GamePhase.lobby: return l10n.phaseLobby;
-      case GamePhase.setup: return l10n.phaseSetup;
-      case GamePhase.roleReveal: return l10n.phaseRoleReveal;
-      case GamePhase.nightMafia: return l10n.phaseNightMafia;
-      case GamePhase.nightProstitute: return l10n.phaseNightProstitute;
-      case GamePhase.nightManiac: return l10n.phaseNightManiac;
-      case GamePhase.nightDoctor: return l10n.phaseNightDoctor;
-      case GamePhase.nightPoisoner: return l10n.phaseNightPoisoner;
-      case GamePhase.nightCommissar: return l10n.phaseNightCommissar;
-      case GamePhase.morning: return l10n.phaseMorning;
-      case GamePhase.dayDiscussion: return l10n.phaseDayDiscussion;
-      case GamePhase.dayVoting: return l10n.phaseDayVoting;
-      case GamePhase.dayDefense: return l10n.phaseDayDefense;
-      case GamePhase.dayVerdict: return l10n.phaseDayVerdict;
-      case GamePhase.gameOver: return l10n.phaseGameOver;
+  String _getPhaseName(GameState state, AppLocalizations l10n) {
+    final key = state.currentMoveId ?? state.phase.id;
+    switch (key) {
+      case 'lobby': return l10n.phaseLobby;
+      case 'setup': return l10n.phaseSetup;
+      case 'roleReveal': return l10n.phaseRoleReveal;
+      case 'night_start': return l10n.phaseNightStart;
+      case 'night_mafia': return l10n.phaseNightMafia;
+      case 'night_prostitute': return l10n.phaseNightProstitute;
+      case 'night_maniac': return l10n.phaseNightManiac;
+      case 'night_doctor': return l10n.phaseNightDoctor;
+      case 'night_poisoner': return l10n.phaseNightPoisoner;
+      case 'night_commissar': return l10n.phaseNightCommissar;
+      case 'morning': return l10n.phaseMorning;
+      case 'day_discussion': return l10n.phaseDayDiscussion;
+      case 'day_voting': return l10n.phaseDayVoting;
+      case 'day_defense': return l10n.phaseDayDefense;
+      case 'day_verdict': return l10n.phaseDayVerdict;
+      case 'gameOver': return l10n.phaseGameOver;
+      default: return key;
     }
   }
 }

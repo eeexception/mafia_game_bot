@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import '../../../core/models/game_state.dart';
 import '../../../core/models/player.dart';
-import '../../../core/models/game_phase.dart';
 import '../../../core/models/role.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -33,7 +32,7 @@ class NightActionPanel extends StatelessWidget {
     
     if (me.hasActed) {
       // Special case for Commissar after inspection
-      if (state.phase == GamePhase.nightCommissar && !state.config.commissarKills && me.role is CommissarRole) {
+      if (state.currentMoveId == 'night_commissar' && !state.config.commissarKills && me.role is CommissarRole) {
         return Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
@@ -81,95 +80,9 @@ class NightActionPanel extends StatelessWidget {
       );
     }
 
-    final availableActions = <Map<String, dynamic>>[];
+    final actions = me.role.getActions(state, me);
     
-    if (state.phase == GamePhase.nightMafia && me.role is MafiaRole) {
-        final role = me.role as MafiaRole;
-        if (role.isDon && state.config.donMechanicsEnabled) {
-          availableActions.add({
-            'type': 'mafia_kill',
-            'label': l10n.donKillAction,
-            'selectedId': selectedTargetId,
-            'onSelect': (id) => onTargetSelected(id),
-          });
-          availableActions.add({
-            'type': 'don_check',
-            'label': l10n.donSearch,
-            'selectedId': selectedDonTargetId,
-            'onSelect': (id) => onDonTargetSelected(id),
-          });
-        } else if (state.config.donMechanicsEnabled) {
-          final livingDon = state.players.firstWhereOrNull((p) => p.isAlive && p.role is MafiaRole && (p.role as MafiaRole).isDon);
-          if (livingDon == null) {
-              // Don is dead, everyone votes
-              availableActions.add({
-                'type': 'vote',
-                'label': l10n.mafiaTeamVote,
-                'selectedId': selectedTargetId,
-                'onSelect': (id) => onTargetSelected(id),
-              });
-          }
-        } else {
-          // Don mechanics disabled
-          availableActions.add({
-            'type': 'vote',
-            'label': l10n.mafiaTeamVote,
-            'selectedId': selectedTargetId,
-            'onSelect': (id) => onTargetSelected(id),
-          });
-        }
-    } else if (state.phase == GamePhase.nightMafia && me.role is LawyerRole) {
-        availableActions.add({
-          'type': 'lawyer_check',
-          'label': l10n.lawyerInvestigation,
-          'selectedId': selectedTargetId,
-          'onSelect': (id) => onTargetSelected(id),
-        });
-    } else if (state.phase == GamePhase.nightPoisoner && me.role is PoisonerRole) {
-        availableActions.add({
-          'type': 'poison',
-          'label': l10n.poisonerAction,
-          'selectedId': selectedTargetId,
-          'onSelect': (id) => onTargetSelected(id),
-        });
-    } else if (state.phase == GamePhase.nightDoctor && me.role is DoctorRole) {
-        final lastDoctorTargetId = state.lastDoctorTargetId;
-        final canHealSelf = state.config.doctorCanHealSelf;
-        final canHealConsecutively = state.config.doctorCanHealSameTargetConsecutively;
-
-        availableActions.add({
-          'type': 'doctor_heal',
-          'label': l10n.doctorAction,
-          'selectedId': selectedTargetId,
-          'onSelect': (id) => onTargetSelected(id),
-          'filter': (Player p) {
-            if (p.id == me.id && !canHealSelf) return false;
-            if (p.id == lastDoctorTargetId && !canHealConsecutively) return false;
-            return true;
-          },
-        });
-    } else if (state.phase == GamePhase.nightCommissar && (me.role is CommissarRole || me.role is SergeantRole)) {
-        final isSergeant = me.role is SergeantRole;
-        final hasSergeant = state.players.any((p) => p.role.type == RoleType.sergeant);
-        
-        // If sergeant is in game, duties are strictly separated
-        String actionType;
-        if (hasSergeant) {
-            actionType = isSergeant ? 'commissar_check' : 'commissar_kill';
-        } else {
-            // Traditional mode
-            actionType = state.config.commissarKills ? 'commissar_kill' : 'commissar_check';
-        }
-
-        availableActions.add({
-          'type': actionType,
-          'label': actionType == 'commissar_kill' ? l10n.commissarActionKill : l10n.commissarActionInvestigate,
-          'selectedId': selectedTargetId,
-          'onSelect': (id) => onTargetSelected(id),
-        });
-    }
-    
-    if (availableActions.isEmpty) {
+    if (actions.isEmpty) {
         return Padding(
           padding: const EdgeInsets.all(32.0),
           child: Text(
@@ -184,21 +97,21 @@ class NightActionPanel extends StatelessWidget {
     }
 
     return Column(
-      children: availableActions
+      children: actions
           .map((action) => _buildActionRow(context, action))
           .toList(),
     );
   }
 
-  Widget _buildActionRow(BuildContext context, Map<String, dynamic> action) {
-    final actionType = action['type'] as String;
-    final label = action['label'] as String;
-    final selectedId = action['selectedId'] as String?;
-    final onSelect = action['onSelect'] as Function(String);
-    final filter = action['filter'] as bool Function(Player)? ?? (p) => p.id != me.id;
+  Widget _buildActionRow(BuildContext context, RoleAction action) {
+    final l10n = AppLocalizations.of(context)!;
+    final label = _getLocalizedLabel(l10n, action.labelKey);
+    final isDonCheck = action.type == 'don_check';
+    final selectedId = isDonCheck ? selectedDonTargetId : selectedTargetId;
+    final onSelect = isDonCheck ? onDonTargetSelected : onTargetSelected;
 
     final targets = state.players
-        .where((p) => p.isAlive && filter(p))
+        .where((p) => p.isAlive && action.isEligibleTarget(p, me, state))
         .toList();
 
     return Column(
@@ -261,7 +174,7 @@ class NightActionPanel extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (actionType == 'mafia_kill' || actionType == 'vote')
+                        if (action.type == 'mafia_kill' || action.type == 'vote')
                           Positioned(
                             top: 4,
                             right: 4,
@@ -278,6 +191,22 @@ class NightActionPanel extends StatelessWidget {
       ],
     );
   }
+
+  String _getLocalizedLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'donKillAction': return l10n.donKillAction;
+      case 'donSearch': return l10n.donSearch;
+      case 'mafiaTeamVote': return l10n.mafiaTeamVote;
+      case 'lawyerInvestigation': return l10n.lawyerInvestigation;
+      case 'poisonerAction': return l10n.poisonerAction;
+      case 'doctorAction': return l10n.doctorAction;
+      case 'commissarActionKill': return l10n.commissarActionKill;
+      case 'commissarActionInvestigate': return l10n.commissarActionInvestigate;
+      case 'maniacAction': return l10n.maniacAction;
+      default: return key;
+    }
+  }
+
 
   Widget _buildMafiaVoteIndicators(String targetId) {
     final voters = mafiaVotes.entries

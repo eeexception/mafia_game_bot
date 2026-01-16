@@ -24,30 +24,19 @@ class AudioController {
     if (_currentTheme == null) return;
     
     String? track;
-    switch (phase) {
-      case GamePhase.lobby:
-      case GamePhase.setup:
-      case GamePhase.roleReveal:
-        track = _currentTheme!.backgroundAudio['lobby'];
-        break;
-      case GamePhase.nightMafia:
-      case GamePhase.nightProstitute:
-      case GamePhase.nightManiac:
-      case GamePhase.nightDoctor:
-      case GamePhase.nightPoisoner:
-      case GamePhase.nightCommissar:
-        track = _currentTheme!.backgroundAudio['night'];
-        break;
-      case GamePhase.gameOver:
-        track = _currentTheme!.backgroundAudio['inactive'];
-        break;
-      case GamePhase.dayDiscussion:
-      case GamePhase.dayVoting:
-      case GamePhase.dayDefense:
-      case GamePhase.dayVerdict:
-      case GamePhase.morning:
-        _audioManager.stopBackground();
-        return;
+    final id = phase.id;
+
+    if (id == 'lobby' || id == 'setup' || id == 'roleReveal') {
+      track = _currentTheme!.backgroundAudio['lobby'];
+    } else if (id == 'night') {
+      track = _currentTheme!.backgroundAudio['night'];
+    } else if (id == 'day') {
+      _audioManager.stopBackground();
+      return;
+    } else if (id == 'gameOver') {
+      track = _currentTheme!.backgroundAudio['inactive'];
+    } else {
+      track = _currentTheme!.backgroundAudio['inactive'];
     }
     
     if (track != null) {

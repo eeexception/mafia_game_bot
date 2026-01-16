@@ -98,6 +98,7 @@
   "phaseLobby": "Лобби",
   "phaseSetup": "Настройка",
   "phaseRoleReveal": "Распределение ролей",
+  "phaseNightStart": "Город засыпает...",
   "phaseNightMafia": "Ночь: Мафия",
   "phaseNightProstitute": "Ночь: Проститутка",
   "phaseNightManiac": "Ночь: Маньяк",
@@ -184,5 +185,15 @@
   "doctorAction": "ХОД ДОКТОРА (ЛЕЧЕНИЕ)",
   "commissarActionKill": "ХОД КОМИССАРА (УБИЙСТВО)",
   "commissarActionInvestigate": "ХОД КОМИССАРА/СЕРЖАНТА (ПРОВЕРКА)",
-  "cityIsSleeping": "ГОРОД ЗАСЫПАЕТ..."
+  "cityIsSleeping": "ГОРОД ЗАСЫПАЕТ...",
+  "donActionLabel": "Тип действия Дона",
+  "donActionKill": "Убийство",
+  "donActionSearch": "Поиск",
+  "confirmAction": "ПОДТВЕРДИТЬ ДЕЙСТВИЕ",
+  "confirmDonCheck": "ПОДТВЕРДИТЬ ПРОВЕРКУ ДОНА",
+  "confirmVote": "ПОДТВЕРДИТЬ ГОЛОС",
+  "confirmVerdict": "ПОДТВЕРДИТЬ ВЕРДИКТ",
+  "voteAction": "ГОЛОСОВАНИЕ ЗА КАЗНЬ",
+  "verdictAction": "ВЕРДИКТ ГОРОДА",
+  "maniacAction": "ХОД МАНЬЯКА (УБИЙСТВО)"
 }

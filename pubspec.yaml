@@ -70,6 +70,7 @@ dev_dependencies:
   mockito: ^5.6.1
   integration_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -90,6 +91,7 @@ flutter:
     - themes/default/assets/
     - themes/default_rus/config.yaml
     - themes/default_rus/assets/
+    - assets/icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -116,3 +118,18 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  image_path: "assets/icon.png"
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+    background_color: "#000000"
+    theme_color: "#000000"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+    icon_size: 48 
+  macos:
+    generate: true
+    image_path: "assets/icon.png"

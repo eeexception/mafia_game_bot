@@ -10,6 +10,7 @@ import 'game_controller_test.mocks.dart';
 import 'package:mafia_game/core/models/role.dart';
 import 'package:mafia_game/core/models/player.dart';
 import 'package:mafia_game/core/models/game_config.dart';
+import 'package:mafia_game/core/models/game_move.dart';
 
 void main() {
   group('Day Defense Logic', () {
@@ -43,6 +44,13 @@ void main() {
         storageService: mockStorage,
         themeController: mockTheme,
       );
+
+      // Default stubs for audio to avoid MissingStubError
+      when(mockAudio.playEvent(any)).thenAnswer((_) async => 'Test text');
+      when(mockAudio.playCompositeEvent(any)).thenAnswer((_) async => 'Test text');
+      
+      when(mockLogger.detailedLog).thenReturn([]);
+      when(mockLogger.publicLog).thenReturn([]);
     });
 
     test('Tie in dayVoting should trigger dayDefense and set speaker', () async {
@@ -53,9 +61,19 @@ void main() {
         Player(id: 'p4', number: 4, nickname: 'P4', role: const CivilianRole(), isAlive: true),
       ];
 
+      final List<GameMove> dayMoves = [
+        const MorningMove(),
+        const DiscussionMove(),
+        const VotingMove(),
+        const DefenseMove(),
+        const VerdictMove(),
+      ];
+
       stateNotifier.updateState(GameState(
         players: players,
-        phase: GamePhase.dayVoting,
+        phase: DayGamePhase(moves: dayMoves),
+        currentMoveId: 'day_voting',
+        currentMoveIndex: 2,
         config: const GameConfig(themeId: 'default'),
       ));
       
@@ -69,7 +87,8 @@ void main() {
 
       await controller.advancePhase();
 
-      expect(stateNotifier.currentState.phase, GamePhase.dayDefense);
+      expect(stateNotifier.currentState.phase, isA<DayGamePhase>());
+      expect(stateNotifier.currentState.currentMoveId, 'day_defense');
       expect(stateNotifier.currentState.defenseQueue, containsAll(['p3', 'p4']));
       expect(stateNotifier.currentState.speakerId, isNotNull);
       expect(['p3', 'p4'], contains(stateNotifier.currentState.speakerId));
@@ -81,27 +100,37 @@ void main() {
         Player(id: 'p2', number: 2, nickname: 'P2', role: const CivilianRole(), isAlive: true),
       ];
 
+      final List<GameMove> dayMoves = [
+        const MorningMove(),
+        const DiscussionMove(),
+        const VotingMove(),
+        const DefenseMove(),
+        const VerdictMove(),
+      ];
+
       stateNotifier.updateState(GameState(
         players: players,
-        phase: GamePhase.dayDefense,
+        phase: DayGamePhase(moves: dayMoves),
+        currentMoveId: 'day_defense',
+        currentMoveIndex: 3,
         config: const GameConfig(themeId: 'default'),
         defenseQueue: ['p1', 'p2'],
         speakerId: 'p1',
       ));
 
       // Act: p1 ends speech
-      controller.handlePlayerAction('p1', const PlayerAction(type: 'end_speech', performerId: 'p1', targetId: null));
+      await controller.handlePlayerAction('p1', const PlayerAction(type: 'end_speech', performerId: 'p1', targetId: null));
 
       // Assert: Should still be in dayDefense but speaker is p2
-      expect(stateNotifier.currentState.phase, GamePhase.dayDefense);
+      expect(stateNotifier.currentState.currentMoveId, 'day_defense');
       expect(stateNotifier.currentState.speakerId, 'p2');
       expect(stateNotifier.currentState.defenseQueue, ['p2']);
 
       // Act: p2 ends speech
-      controller.handlePlayerAction('p2', const PlayerAction(type: 'end_speech', performerId: 'p2', targetId: null));
+      await controller.handlePlayerAction('p2', const PlayerAction(type: 'end_speech', performerId: 'p2', targetId: null));
 
       // Assert: Should move to dayVerdict
-      expect(stateNotifier.currentState.phase, GamePhase.dayVerdict);
+      expect(stateNotifier.currentState.currentMoveId, 'day_verdict');
     });
   });
 }

@@ -228,6 +228,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get phaseRoleReveal => 'Распределение ролей';
 
   @override
+  String get phaseNightStart => 'Город засыпает...';
+
+  @override
   String get phaseNightMafia => 'Ночь: Мафия';
 
   @override
@@ -405,4 +408,34 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cityIsSleeping => 'ГОРОД ЗАСЫПАЕТ...';
+
+  @override
+  String get donActionLabel => 'Тип действия Дона';
+
+  @override
+  String get donActionKill => 'Убийство';
+
+  @override
+  String get donActionSearch => 'Поиск';
+
+  @override
+  String get confirmAction => 'ПОДТВЕРДИТЬ ДЕЙСТВИЕ';
+
+  @override
+  String get confirmDonCheck => 'ПОДТВЕРДИТЬ ПРОВЕРКУ ДОНА';
+
+  @override
+  String get confirmVote => 'ПОДТВЕРДИТЬ ГОЛОС';
+
+  @override
+  String get confirmVerdict => 'ПОДТВЕРДИТЬ ВЕРДИКТ';
+
+  @override
+  String get voteAction => 'ГОЛОСОВАНИЕ ЗА КАЗНЬ';
+
+  @override
+  String get verdictAction => 'ВЕРДИКТ ГОРОДА';
+
+  @override
+  String get maniacAction => 'ХОД МАНЬЯКА (УБИЙСТВО)';
 }

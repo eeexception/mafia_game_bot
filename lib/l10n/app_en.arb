@@ -98,6 +98,7 @@
   "phaseLobby": "Lobby",
   "phaseSetup": "Setup",
   "phaseRoleReveal": "Role Reveal",
+  "phaseNightStart": "The city falls asleep...",
   "phaseNightMafia": "Night: Mafia",
   "phaseNightProstitute": "Night: Prostitute",
   "phaseNightManiac": "Night: Maniac",
@@ -184,5 +185,15 @@
   "doctorAction": "DOCTOR ACTION (HEAL)",
   "commissarActionKill": "COMMISSAR ACTION (KILL)",
   "commissarActionInvestigate": "COMMISSAR/SERGEANT ACTION (INVESTIGATE)",
-  "cityIsSleeping": "THE CITY IS SLEEPING..."
+  "cityIsSleeping": "THE CITY IS SLEEPING...",
+  "donActionLabel": "Don't Action Type",
+  "donActionKill": "Kill",
+  "donActionSearch": "Search",
+  "confirmAction": "CONFIRM ACTION",
+  "confirmDonCheck": "CONFIRM DON CHECK",
+  "confirmVote": "CONFIRM VOTE",
+  "confirmVerdict": "CONFIRM VERDICT",
+  "voteAction": "VOTE TO EXECUTE",
+  "verdictAction": "CASE VERDICT",
+  "maniacAction": "MANIAC ACTION (KILL)"
 }

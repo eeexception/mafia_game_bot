@@ -224,6 +224,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phaseRoleReveal => 'Role Reveal';
 
   @override
+  String get phaseNightStart => 'The city falls asleep...';
+
+  @override
   String get phaseNightMafia => 'Night: Mafia';
 
   @override
@@ -401,4 +404,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cityIsSleeping => 'THE CITY IS SLEEPING...';
+
+  @override
+  String get donActionLabel => 'Don\'t Action Type';
+
+  @override
+  String get donActionKill => 'Kill';
+
+  @override
+  String get donActionSearch => 'Search';
+
+  @override
+  String get confirmAction => 'CONFIRM ACTION';
+
+  @override
+  String get confirmDonCheck => 'CONFIRM DON CHECK';
+
+  @override
+  String get confirmVote => 'CONFIRM VOTE';
+
+  @override
+  String get confirmVerdict => 'CONFIRM VERDICT';
+
+  @override
+  String get voteAction => 'VOTE TO EXECUTE';
+
+  @override
+  String get verdictAction => 'CASE VERDICT';
+
+  @override
+  String get maniacAction => 'MANIAC ACTION (KILL)';
 }

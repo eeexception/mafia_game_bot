@@ -11,7 +11,7 @@ import 'package:mafia_game/core/models/player_action.dart';
 import 'package:mafia_game/core/services/storage_service.dart';
 import 'package:mafia_game/core/state/game_state_notifier.dart';
 import 'package:mockito/annotations.dart';
-
+import 'package:mockito/mockito.dart';
 import 'night_actions_test.mocks.dart';
 
 @GenerateMocks([AudioController, WebSocketController, WinDetector, GameLogger, StorageService, ThemeController])
@@ -43,9 +43,13 @@ void main() {
       storageService: mockStorage,
       themeController: mockTheme,
     );
+
+    // Default stubs for audio to avoid MissingStubError
+    when(mockAudio.playEvent(any)).thenAnswer((_) async => 'Test text');
+    when(mockAudio.playCompositeEvent(any)).thenAnswer((_) async => 'Test text');
   });
 
-  test('resolveNightActions kills player not healed', () {
+  test('resolveNightActions kills player not healed', () async {
     // Arrange
     final players = [
       const Player(id: 'p1', number: 1, nickname: 'P1', role: CivilianRole()),
@@ -59,7 +63,7 @@ void main() {
     ));
 
     // Act
-    gameController.resolveNightActions();
+    await gameController.resolveNightActions();
 
     // Assert
     final newState = stateNotifier.currentState;
@@ -67,7 +71,7 @@ void main() {
     expect(newState.publicEventLog.last, contains('P1 was found dead'));
   });
 
-  test('resolveNightActions heal saves player', () {
+  test('resolveNightActions heal saves player', () async {
     // Arrange
     final players = [
       const Player(id: 'p1', number: 1, nickname: 'P1', role: CivilianRole()),
@@ -83,7 +87,7 @@ void main() {
     ));
 
     // Act
-    gameController.resolveNightActions();
+    await gameController.resolveNightActions();
 
     // Assert
     final newState = stateNotifier.currentState;
@@ -91,7 +95,7 @@ void main() {
     expect(newState.publicEventLog.last, contains('Everyone is alive'));
   });
 
-  test('resolveNightActions prostitute blocks killer', () {
+  test('resolveNightActions prostitute blocks killer', () async {
      // Arrange
     final players = [
       const Player(id: 'p1', number: 1, nickname: 'P1', role: CivilianRole()),
@@ -107,7 +111,7 @@ void main() {
     ));
 
     // Act
-    gameController.resolveNightActions();
+    await gameController.resolveNightActions();
 
     // Assert
     final newState = stateNotifier.currentState;

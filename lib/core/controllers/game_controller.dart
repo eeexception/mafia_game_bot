@@ -9,8 +9,9 @@ import '../models/game_phase.dart';
 import '../models/game_config.dart';
 import '../models/player.dart';
 import '../models/role.dart';
-import '../models/player_action.dart';
 import 'win_detector.dart';
+import '../models/game_move.dart';
+import '../models/player_action.dart';
 import '../services/game_logger.dart';
 import '../services/storage_service.dart';
 
@@ -161,9 +162,36 @@ class GameController {
     });
   }
 
+  /// Process incoming player action relative to current phase
   Future<void> handlePlayerAction(String senderId, PlayerAction action) async {
     final sender = _state.players.firstWhere((p) => p.id == senderId);
     if (!sender.isAlive) return;
+
+    if (action.type == 'mafia_vote_sync') {
+      if (_state.phase.id != 'night' || _currentMove?.id != 'night_mafia') return;
+      final votes = Map<String, String>.from(_state.currentVotes ?? {});
+      if (action.targetId != null) {
+        votes[senderId] = action.targetId!;
+      } else {
+        votes.remove(senderId);
+      }
+      _state = _state.copyWith(currentVotes: votes);
+      
+      final mafiaFamily = _state.players.where((p) => p.role.faction == Faction.mafia).toList();
+      for (var member in mafiaFamily) {
+        websocketController.sendToClient(member.id, {
+          'type': 'team_votes_update',
+          'votes': votes,
+        });
+      }
+      return;
+    }
+
+    const bypassLock = ['mafia_vote_sync', 'toggle_ready', 'ready_to_vote', 'commissar_ready'];
+    if (sender.hasActed && !bypassLock.contains(action.type)) {
+      gameLogger.logDetailed('Blocked action ${action.type} from Player ${sender.number} because they already acted.');
+      return;
+    }
 
     if (action.type == 'ready_to_vote' || action.type == 'toggle_ready') {
       final players = List<Player>.from(_state.players);
@@ -202,7 +230,7 @@ class GameController {
       _state = _state.copyWith(currentVotes: votes, players: players);
 
       // Visibility for Mafia team
-      if (_state.phase == GamePhase.nightMafia) {
+      if (_state.currentMoveId == 'night_mafia') {
           final mafiaFamily = players.where((p) => p.role.faction == Faction.mafia).toList();
           for (var member in mafiaFamily) {
               websocketController.sendToClient(member.id, {
@@ -215,7 +243,7 @@ class GameController {
     }
 
     if (action.type == 'verdict') {
-      if (_state.phase != GamePhase.dayVerdict) return;
+      if (_state.phase.id != 'day' || _currentMove?.id != 'day_verdict') return;
       final verdicts = Map<String, bool>.from(_state.currentVerdicts ?? {});
       final decision = action.targetId == 'execute';
       verdicts[senderId] = decision;
@@ -231,7 +259,7 @@ class GameController {
     }
 
     if (action.type == 'end_speech') {
-      if (_state.phase != GamePhase.dayDefense) return;
+      if (_state.currentMoveId != 'day_defense') return;
       if (_state.speakerId != senderId) return;
       
       gameLogger.logPublic('Player ${sender.nickname} ended their speech early.');
@@ -257,11 +285,11 @@ class GameController {
     }
 
     if (action.type == 'mafia_kill') {
-        if (_state.config.donMechanicsEnabled) {
+        if (_state.config.donMechanicsEnabled && _state.config.donAction == DonAction.kill) {
             final livingDon = _state.players.firstWhereOrNull((p) => p.isAlive && p.role is MafiaRole && (p.role as MafiaRole).isDon);
             if (livingDon != null && senderId != livingDon.id) {
-                // There is a living Don, and this is not him.
-                // He cannot choose a target if Don is active and alive.
+                // There is a living Don in KILL mode, and this is not him.
+                // He is the only one who can choose a target.
                 return;
             }
         }
@@ -271,8 +299,15 @@ class GameController {
     updatedActions.removeWhere((a) => a.performerId == senderId);
     updatedActions.add(action.copyWith(performerId: senderId));
 
+    final players = List<Player>.from(_state.players);
+    final index = players.indexWhere((p) => p.id == senderId);
+    if (index != -1) {
+      players[index] = players[index].copyWith(hasActed: true);
+    }
+
     _state = _state.copyWith(
       pendingActions: updatedActions,
+      players: players,
     );
 
     // Immediate resolution for Commissar/Sergeant checks/kills
@@ -363,6 +398,7 @@ class GameController {
 
     if (action.type == 'don_check') {
       if (!(sender.role is MafiaRole && (sender.role as MafiaRole).isDon)) return;
+      if (_state.config.donAction != DonAction.search) return;
 
       final target = _state.players.firstWhereOrNull((p) => p.id == action.targetId);
       if (target != null) {
@@ -385,7 +421,7 @@ class GameController {
     }
 
     if (action.type == 'commissar_ready') {
-      if (_state.phase != GamePhase.nightCommissar) return;
+      if (_state.currentMoveId != 'night_commissar') return;
       gameLogger.logDetailed('Police are ready. Ending phase early.');
       advancePhase();
       return;
@@ -393,8 +429,8 @@ class GameController {
 
 
     // Sync Mode Support: Broadcast Mafia votes to other Mafia members
-    // If Don mechanics are DISABLED, we always sync Mafia votes for consensus
-    if (action.type == 'mafia_kill' && !_state.config.donMechanicsEnabled) {
+    // If Don mechanics are DISABLED or Don is in SEARCH mode, we always sync Mafia votes for consensus
+    if (action.type == 'mafia_kill' && (!_state.config.donMechanicsEnabled || _state.config.donAction == DonAction.search)) {
       final mafiaMembers = _state.players.where((p) => p.role.type == RoleType.mafia).map((p) => p.id).toSet();
       for (var memberId in mafiaMembers) {
         websocketController.sendToClient(memberId, {
@@ -415,30 +451,31 @@ class GameController {
   }
 
   void _checkAndAdvanceNightPhase() {
-    final phase = _state.phase;
-    if (!phase.name.toLowerCase().contains('night')) return;
+    final phaseId = _state.phase.id;
+    if (phaseId != 'night') return;
 
+    final moveId = _state.currentMoveId;
     final livingPlayers = _state.players.where((p) => p.isAlive).toList();
     
     bool allReady = false;
-    if (phase == GamePhase.nightMafia) {
+    if (moveId == 'night_mafia') {
       final mafiaAndLawyer = livingPlayers.where((p) => p.role.faction == Faction.mafia).toList();
       allReady = mafiaAndLawyer.every((p) => p.hasActed);
-    } else if (phase == GamePhase.nightProstitute) {
+    } else if (moveId == 'night_prostitute') {
       allReady = livingPlayers.where((p) => p.role.type == RoleType.prostitute).every((p) => p.hasActed);
-    } else if (phase == GamePhase.nightManiac) {
+    } else if (moveId == 'night_maniac') {
       allReady = livingPlayers.where((p) => p.role.type == RoleType.maniac).every((p) => p.hasActed);
-    } else if (phase == GamePhase.nightDoctor) {
+    } else if (moveId == 'night_doctor') {
       allReady = livingPlayers.where((p) => p.role.type == RoleType.doctor).every((p) => p.hasActed);
-    } else if (phase == GamePhase.nightPoisoner) {
+    } else if (moveId == 'night_poisoner') {
       allReady = livingPlayers.where((p) => p.role.type == RoleType.poisoner).every((p) => p.hasActed);
-    } else if (phase == GamePhase.nightCommissar) {
+    } else if (moveId == 'night_commissar') {
       final police = livingPlayers.where((p) => p.role.type == RoleType.commissar || p.role.type == RoleType.sergeant).toList();
       allReady = police.every((p) => p.hasActed);
     }
 
     if (allReady) {
-      gameLogger.logDetailed('All required players for $phase have acted. Advancing phase.');
+      gameLogger.logDetailed('All required players for $moveId have acted. Advancing phase.');
       advancePhase();
     }
   }
@@ -584,317 +621,216 @@ class GameController {
     final players = _state.players.map((p) => p.copyWith(isReadyToVote: false)).toList();
     _state = _state.copyWith(players: players);
 
-    gameLogger.logDetailed('Advancing phase from ${_state.phase} to ...');
+    gameLogger.logDetailed('Advancing game state from ${_state.phase.id} (Move: ${_currentMove?.id})');
     
-    // Trigger sleep audio for previous phase
-    await _triggerSleepAudio(_state.phase);
+    final currentMove = _currentMove;
+    
+    if (currentMove is VotingMove) {
+      final tiedIds = _getTiedPlayers();
+      if (tiedIds.isEmpty) {
+        gameLogger.logPublic('NO VOTES: Nobody accused.');
+        _moveToPhase(NightGamePhase(moves: _buildNightMoves()));
+        return advancePhase();
+      }
+      _state = _state.copyWith(
+        defenseQueue: tiedIds,
+        speakerId: tiedIds.first,
+        verdictTargetId: tiedIds.length == 1 ? tiedIds.first : null,
+      );
+    } else if (currentMove is VerdictMove) {
+      await _executeVotedPlayer();
+    }
 
-    switch (_state.phase) {
-      case GamePhase.lobby:
-      case GamePhase.setup:
-        _moveToPhase(GamePhase.roleReveal);
-        break;
-      case GamePhase.roleReveal:
-        _moveToPhase(GamePhase.nightProstitute);
-        break;
-      case GamePhase.nightProstitute:
-        _moveToPhase(GamePhase.nightPoisoner);
-        break;
-      case GamePhase.nightPoisoner:
-        _moveToPhase(GamePhase.nightMafia);
-        break;
-      case GamePhase.nightMafia:
-        _moveToPhase(GamePhase.nightCommissar);
-        break;
-      case GamePhase.nightCommissar:
-        _moveToPhase(GamePhase.nightManiac);
-        break;
-      case GamePhase.nightManiac:
-        _moveToPhase(GamePhase.nightDoctor);
-        break;
-      case GamePhase.nightDoctor:
-        _moveToPhase(GamePhase.morning);
-        break;
-      case GamePhase.morning:
-        _moveToPhase(GamePhase.dayDiscussion);
-        break;
-      case GamePhase.dayDiscussion:
-        _moveToPhase(GamePhase.dayVoting);
-        break;
-      case GamePhase.dayVoting:
-        final tiedIds = _getTiedPlayers();
-        if (tiedIds.length > 1) {
-          gameLogger.logPublic('VOTES TIED: Players ${tiedIds.map((id) => _state.players.firstWhere((p) => p.id == id).number).join(", ")} will defend.');
-          _state = _state.copyWith(
-            defenseQueue: tiedIds,
-            speakerId: tiedIds.first,
-          );
-          _moveToPhase(GamePhase.dayDefense);
-        } else if (tiedIds.isNotEmpty) {
-          _state = _state.copyWith(verdictTargetId: tiedIds.first);
-          _moveToPhase(GamePhase.dayVerdict);
-        } else {
-          gameLogger.logPublic('NO VOTES: Nobody was accused.');
-          _moveToPhase(GamePhase.nightMafia);
-          _state = _state.copyWith(
-            currentNightNumber: (_state.currentNightNumber ?? 1) + 1,
-            currentDayNumber: (_state.currentDayNumber ?? 1) + 1,
-          );
-        }
-        break;
-      case GamePhase.dayDefense:
-        final queue = List<String>.from(_state.defenseQueue);
-        if (queue.isNotEmpty) {
-          queue.removeAt(0);
+    // Check if we are in a multi-move phase and can advance moves
+    final currentPhase = _state.phase;
+    if (currentPhase is NightGamePhase || currentPhase is DayGamePhase) {
+      final moves = (currentPhase is NightGamePhase) ? currentPhase.moves : (currentPhase as DayGamePhase).moves;
+      
+      // Special logic for DefenseMove loop
+      if (currentMove is DefenseMove && _state.defenseQueue.isNotEmpty) {
+         final queue = List<String>.from(_state.defenseQueue);
+         queue.removeAt(0);
+         if (queue.isNotEmpty) {
+           _state = _state.copyWith(
+             defenseQueue: queue,
+             speakerId: queue.first,
+           );
+           await _startMove(_currentMove!);
+           return;
+         }
+      }
+
+      // Normal move progression
+      if (_state.currentMoveIndex < moves.length - 1) {
+        _state = _state.copyWith(currentMoveIndex: _state.currentMoveIndex + 1);
+        final nextMove = moves[_state.currentMoveIndex];
+        
+        if (nextMove.shouldSkip(_state)) {
+          gameLogger.logDetailed('Skipping move: ${nextMove.id}');
+          return advancePhase();
         }
         
-        if (queue.isNotEmpty) {
-          _state = _state.copyWith(
-            defenseQueue: queue,
-            speakerId: queue.first,
-          );
-          // Reset timer for the next speaker
-          _startTimerForPhase(); 
-          websocketController.broadcast({'type': 'state_update', 'state': _state.toJson()});
-          return; // Don't advance phase yet, just reset timer and update speaker
-        } else {
-          _state = _state.copyWith(
-            defenseQueue: [],
-            speakerId: null,
-          );
-          _moveToPhase(GamePhase.dayVerdict);
-        }
-        break;
-      case GamePhase.dayVerdict:
-        _executeVotedPlayer();
-        _moveToPhase(GamePhase.nightMafia);
-        _state = _state.copyWith(
-          currentNightNumber: (_state.currentNightNumber ?? 1) + 1,
-          currentDayNumber: (_state.currentDayNumber ?? 1) + 1,
-        );
-        break;
-      case GamePhase.gameOver:
+        await _startMove(nextMove);
         return;
+      }
     }
-    gameLogger.logDetailed('New phase: ${_state.phase}');
-    
-    // Only check win condition if we are NOT starting the morning.
-    // This allows the morning reveal to happen before the game ends.
-    if (_state.phase != GamePhase.morning) {
+
+    // Phase transition logic
+
+    if (currentPhase == GamePhase.lobby || currentPhase == GamePhase.setup) {
+      _moveToPhase(GamePhase.roleReveal);
+    } else if (currentPhase == GamePhase.roleReveal) {
+      _moveToPhase(NightGamePhase(moves: _buildNightMoves()));
+    } else if (currentPhase is NightGamePhase) {
+      _moveToPhase(DayGamePhase(moves: _buildDayMoves()));
+    } else if (currentPhase is DayGamePhase) {
+       // After Day moves are done, we usually go to Night
+       _moveToPhase(NightGamePhase(moves: _buildNightMoves()));
+    } else {
+       gameLogger.logDetailed('No further phase transitions defined for ${currentPhase.id}');
+       return;
+    }
+
+    gameLogger.logDetailed('New phase: ${_state.phase.id} (Move: ${_currentMove?.id})');
+
+    // Only check win condition if we are NOT reveal part of the day
+    if (_currentMove?.id != 'morning') {
       if (await _checkWinCondition()) return;
     }
+
+    await _startMove(_currentMove!);
     
-    await _triggerPhaseAudio();
-    if (_state.phase == GamePhase.morning) {
+    if (_currentMove?.id == 'morning') {
       await resolveNightActions();
     }
-    _startTimerForPhase();
-    websocketController.broadcast({'type': 'phase_changed', 'phase': _state.phase.name});
-    websocketController.broadcast({'type': 'state_update', 'state': _state.toJson()});
+  }
 
-    // If we just entered morning, we might want to check win condition 
-    // BUT we wait for the next advance before actually ending, 
-    // so the host can announce results.
+  Future<void> _startMove(GameMove move) async {
+    _state = _state.copyWith(
+      statusMessage: move.nameKey,
+      currentMoveId: move.id,
+    );
+
+    // Audio
+    if (move.audioEvent != null) {
+      await audioController.playEvent(move.audioEvent!);
+    }
+    
+    // Timer
+    _startTimerForMove(move);
+
+    // Sync state
+    websocketController.broadcast({'type': 'phase_changed', 'phase': move.id});
+    websocketController.broadcast({'type': 'state_update', 'state': _state.toJson()});
+  }
+
+  List<GameMove> _buildNightMoves() {
+    return [
+      const NightStartMove(),
+      const RoleMove(RoleType.prostitute),
+      const RoleMove(RoleType.poisoner),
+      const MafiaMove(),
+      const RoleMove(RoleType.commissar),
+      const RoleMove(RoleType.maniac),
+      const RoleMove(RoleType.doctor),
+    ];
+  }
+
+  List<GameMove> _buildDayMoves() {
+    return [
+      const MorningMove(),
+      const DiscussionMove(),
+      const VotingMove(),
+      const DefenseMove(),
+      const VerdictMove(),
+    ];
+  }
+
+  GameMove? get _currentMove {
+    final phase = _state.phase;
+    if (phase is NightGamePhase) {
+      if (_state.currentMoveIndex >= 0 && _state.currentMoveIndex < phase.moves.length) {
+        return phase.moves[_state.currentMoveIndex];
+      }
+    } else if (phase is DayGamePhase) {
+      if (_state.currentMoveIndex >= 0 && _state.currentMoveIndex < phase.moves.length) {
+        return phase.moves[_state.currentMoveIndex];
+      }
+    }
+    // For singular phases, we might want a virtual move? 
+    // Or just return null. Singular phases like Lobby don't have moves.
+    return null;
   }
 
   void _moveToPhase(GamePhase phase) {
-    GamePhase next = phase;
-
-    // Phase Skipping Logic: Skip turns of dead active roles
-    if (next == GamePhase.nightProstitute &&
-        !_state.players.any(
-            (p) => p.isAlive && p.role.type == RoleType.prostitute)) {
-      _moveToPhase(GamePhase.nightPoisoner);
-      return;
-    }
-    if (next == GamePhase.nightPoisoner &&
-        !_state.players.any((p) => p.isAlive && p.role.type == RoleType.poisoner)) {
-      _moveToPhase(GamePhase.nightMafia);
-      return;
-    }
-    // Mafia doesn't usually skip unless all dead, but Mafia is mandatory in roles.
-    // However, if all mafia are dead, game should be over.
-    if (next == GamePhase.nightMafia &&
-        !_state.players.any((p) => p.isAlive && p.role.faction == Faction.mafia)) {
-      _moveToPhase(GamePhase.nightCommissar);
-      return;
-    }
-    if (next == GamePhase.nightCommissar &&
-        !_state.players.any(
-            (p) => p.isAlive && (p.role.type == RoleType.commissar || p.role.type == RoleType.sergeant))) {
-      _moveToPhase(GamePhase.nightManiac);
-      return;
-    }
-    if (next == GamePhase.nightManiac &&
-        !_state.players.any((p) => p.isAlive && p.role.type == RoleType.maniac)) {
-      _moveToPhase(GamePhase.nightDoctor);
-      return;
-    }
-    if (next == GamePhase.nightDoctor &&
-        !_state.players.any((p) => p.isAlive && p.role.type == RoleType.doctor)) {
-      _moveToPhase(GamePhase.morning);
-      return;
-    }
-
     _state = _state.copyWith(
-      phase: next,
+      phase: phase,
+      currentMoveIndex: 0,
       players: _state.players.map((p) => p.copyWith(hasActed: false)).toList(),
+      currentVotes: {},
+      currentVerdicts: {},
     );
-
-    // Cleanup/Initialization for specific phases
-    if (next == GamePhase.dayVoting) {
-      _state = _state.copyWith(currentVotes: {});
-    }
-    if (next == GamePhase.dayVerdict) {
-      _state = _state.copyWith(currentVerdicts: {});
+    
+    if (phase is NightGamePhase || phase is DayGamePhase) {
+       // Increment Night/Day counters when entering
+       if (phase is NightGamePhase) {
+          _state = _state.copyWith(currentNightNumber: (_state.currentNightNumber ?? 0) + 1);
+       } else {
+          _state = _state.copyWith(currentDayNumber: (_state.currentDayNumber ?? 0) + 1);
+       }
     }
   }
 
-  Future<void> _triggerPhaseAudio() async {
-    audioController.playBackgroundMusic(_state.phase);
-    String? text;
-    switch (_state.phase) {
-      case GamePhase.roleReveal:
-        text = await audioController.playEvent('role_reveal');
-        break;
-      case GamePhase.nightProstitute:
-        text = await audioController.playCompositeEvent(['night_start', 'prostitute_wake', 'prostitute_action']);
-        break;
-      case GamePhase.nightPoisoner:
-        text = await audioController.playCompositeEvent(['poisoner_wake', 'poisoner_action']);
-        break;
-      case GamePhase.nightMafia:
-        List<String> events = [];
-        final lawyerAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.lawyer);
-        final mafiaAlive = _state.players.any((p) => p.isAlive && p.role is MafiaRole); // Includes Don and regular Mafia
-        
-        if (_state.currentNightNumber == 1) {
-          if (mafiaAlive && lawyerAlive) {
-            events.add('mafia_lawyer_meet');
-          } else {
-            events.add('mafia_meet');
-          }
+  void _startTimerForMove(GameMove move) {
+    _phaseTimer?.cancel();
+    int duration = move.getDuration(_state.config);
+    
+    _state = _state.copyWith(timerSecondsRemaining: duration);
+    _phaseTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_state.isPaused) return;
+      
+      final remaining = (_state.timerSecondsRemaining ?? 0) - 1;
+      _state = _state.copyWith(timerSecondsRemaining: remaining);
+      
+      // Audio announcements for last 10 seconds
+      if (remaining <= 10 && remaining > 0) {
+        audioController.playEvent('timer_tick');
+      }
+
+      if (remaining <= 0) {
+        timer.cancel();
+        // If it's a voting move, calculate results before advancing
+        if (move is VotingMove) {
+           _handleVotingFinalization();
+        } else if (move is VerdictMove) {
+           _handleVerdictFinalization();
         } else {
-          if (mafiaAlive && lawyerAlive) {
-            events.add('mafia_lawyer_wake');
-          } else if (mafiaAlive) {
-            events.add('mafia_wake');
-          } else if (lawyerAlive) {
-            events.add('lawyer_wake');
-          }
+           advancePhase();
         }
-        
-        // Actions
-        if (mafiaAlive) {
-          if (_state.config.donMechanicsEnabled && _state.players.any((p) => p.isAlive && p.role is MafiaRole && (p.role as MafiaRole).isDon)) {
-            events.add('don_action');
-          } else {
-            events.add('mafia_action');
-          }
-        }
-        
-        if (lawyerAlive) {
-          events.add('lawyer_action');
-        }
-        
-        text = await audioController.playCompositeEvent(events);
-        break;
-      case GamePhase.nightCommissar:
-        final sergeantAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.sergeant);
-        final commissarAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.commissar);
-        
-        List<String> events = [];
-        if (commissarAlive && sergeantAlive) {
-          events.add('commissar_sergeant_wake');
-        } else if (commissarAlive) {
-          events.add('commissar_wake');
-        } else if (sergeantAlive) {
-          events.add('sergeant_wake');
-        }
-        
-        if (commissarAlive) {
-          events.add('commissar_action');
-        }
-        if (sergeantAlive) {
-          events.add('sergeant_action');
-        }
-        text = await audioController.playCompositeEvent(events);
-        break;
-      case GamePhase.nightManiac:
-        text = await audioController.playCompositeEvent(['maniac_wake', 'maniac_action']);
-        break;
-      case GamePhase.nightDoctor:
-        text = await audioController.playCompositeEvent(['doctor_wake', 'doctor_action']);
-        break;
-      case GamePhase.morning:
-        text = await audioController.playEvent('day_start');
-        break;
-      case GamePhase.dayDiscussion:
-        text = await audioController.playEvent('discussion_start');
-        break;
-      case GamePhase.dayVoting:
-        text = await audioController.playEvent('voting_start');
-        break;
-      case GamePhase.dayDefense:
-        text = await audioController.playEvent('defense_start');
-        break;
-      case GamePhase.dayVerdict:
-        text = await audioController.playEvent('verdict_start');
-        break;
-      default:
-         break;
-    }
-    if (text != null) {
-      _state = _state.copyWith(statusMessage: text);
+      }
+    });
+  }
+
+  Future<void> _handleVotingFinalization() async {
+    final tiedIds = _getTiedPlayers();
+    if (tiedIds.isEmpty) {
+      gameLogger.logPublic('NO VOTES: Nobody accused.');
+      _moveToPhase(NightGamePhase(moves: _buildNightMoves()));
+      await advancePhase();
+    } else {
+      // If 1 or more tied, go to defense
+      _state = _state.copyWith(
+        defenseQueue: tiedIds,
+        speakerId: tiedIds.first,
+        verdictTargetId: tiedIds.length == 1 ? tiedIds.first : null, // Set verdict target only if exactly one
+      );
+      advancePhase(); // This will move from Voting to Defense
     }
   }
 
-  Future<void> _triggerSleepAudio(GamePhase phase) async {
-      String? text;
-      switch (phase) {
-        case GamePhase.nightProstitute:
-            text = await audioController.playEvent('prostitute_sleep');
-            break;
-        case GamePhase.nightPoisoner:
-            text = await audioController.playEvent('poisoner_sleep');
-            break;
-        case GamePhase.nightMafia:
-            final lawyerAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.lawyer);
-            final mafiaAlive = _state.players.any((p) => p.isAlive && p.role is MafiaRole);
-            
-            if (mafiaAlive && lawyerAlive) {
-              text = await audioController.playEvent('mafia_lawyer_sleep');
-            } else if (mafiaAlive) {
-              text = await audioController.playEvent('mafia_sleep');
-            } else if (lawyerAlive) {
-              text = await audioController.playEvent('lawyer_sleep');
-            }
-            break;
-        case GamePhase.nightCommissar:
-            final sergeantAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.sergeant);
-            final commissarAlive = _state.players.any((p) => p.isAlive && p.role.type == RoleType.commissar);
-            
-            if (commissarAlive && sergeantAlive) {
-              text = await audioController.playEvent('commissar_sergeant_sleep');
-            } else if (commissarAlive) {
-              text = await audioController.playEvent('commissar_sleep');
-            } else if (sergeantAlive) {
-              text = await audioController.playEvent('sergeant_sleep');
-            }
-            break;
-        case GamePhase.nightManiac:
-            text = await audioController.playEvent('maniac_sleep');
-            break;
-        case GamePhase.nightDoctor:
-            text = await audioController.playEvent('doctor_sleep');
-            break;
-        default:
-            break; // No sleep audio for other phases
-      }
-      if (text != null) {
-        _state = _state.copyWith(statusMessage: text);
-        websocketController.broadcast({'type': 'state_update', 'state': _state.toJson()});
-      }
+  Future<void> _handleVerdictFinalization() async {
+     await _executeVotedPlayer();
+     advancePhase(); // Go to Night
   }
 
   Future<void> _playEvent(String eventKey) async {
@@ -985,68 +921,6 @@ class GameController {
     }
   }
 
-  void _startTimerForPhase() {
-    int duration = 60; 
-    switch (_state.phase) {
-      case GamePhase.dayDiscussion:
-        duration = _state.config.discussionTime;
-        break;
-      case GamePhase.dayVoting:
-        duration = _state.config.votingTime;
-        break;
-      case GamePhase.dayDefense:
-        duration = _state.config.defenseTime;
-        break;
-      case GamePhase.nightMafia:
-        duration = _state.config.mafiaActionTime;
-        break;
-      case GamePhase.roleReveal:
-        duration = 60;
-        break;
-      case GamePhase.morning:
-        duration = 15; // Give 15 seconds for morning announcements
-        break;
-      default:
-        duration = _state.config.otherActionTime;
-    }
-    
-    _state = _state.copyWith(timerSecondsRemaining: duration);
-    _phaseTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_state.isPaused) return;
-      
-      final remaining = (_state.timerSecondsRemaining ?? 0) - 1;
-      _state = _state.copyWith(timerSecondsRemaining: remaining);
-      
-      // Audio announcements
-      if (remaining == 30) {
-        _playEvent('timer_30sec'); // Removed await as Timer callback cannot be async
-      } else if (remaining == 20) {
-        _playEvent('timer_20sec'); // Removed await as Timer callback cannot be async
-      } else if (remaining == 10) {
-        _playEvent('timer_10sec'); // Removed await as Timer callback cannot be async
-      }
-      
-      if (remaining <= 10 && remaining > 0) {
-        final keyMap = {
-          9: 'nine', 8: 'eight', 7: 'seven', 6: 'six',
-          5: 'five', 4: 'four', 3: 'three', 2: 'two', 1: 'one'
-        };
-        if (keyMap.containsKey(remaining)) {
-          _playEvent('countdown_${keyMap[remaining]}'); // Removed await as Timer callback cannot be async
-        }
-      }
-
-      if (remaining <= 0) {
-        timer.cancel();
-        // For morning phase, we might want to stay a bit longer if audio is still playing?
-        // But usually advancePhase() will trigger the next step.
-        advancePhase();
-      } else {
-        websocketController.broadcast({'type': 'timer_update', 'seconds': remaining});
-      }
-    });
-  }
-
   Future<void> resolveNightActions() async {
     // 0. Initial Setup
     final actions = _state.pendingActions;
@@ -1102,7 +976,7 @@ class GameController {
       }
 
       if (!mafiaBlocked) {
-        if (!_state.config.donMechanicsEnabled) {
+        if (!_state.config.donMechanicsEnabled || _state.config.donAction == DonAction.search) {
           final targetCounts = <String, int>{};
           for (var action in mafiaActions) {
             if (!blockedIds.contains(action.performerId) && action.targetId != null) {

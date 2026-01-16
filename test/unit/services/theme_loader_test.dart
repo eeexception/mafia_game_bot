@@ -19,10 +19,10 @@ void main() {
     
     // Check audio events flattening
     expect(theme.eventAudio.containsKey('game_start'), true);
-    expect(theme.eventAudio['game_start']?.first, 'themes/default/assets/game_start.mp3');
+    expect(theme.eventAudio['game_start']?.first.file.contains('themes/default/assets/game_start.mp3'), true);
     
     // Check nested keys if any (countdown)
     expect(theme.eventAudio.containsKey('countdown_ten'), true);
-    expect(theme.eventAudio['countdown_ten']?.first, 'themes/default/assets/countdown_10.mp3');
+    expect(theme.eventAudio['countdown_ten']?.first.file.contains('themes/default/assets/countdown_10.mp3'), true);
   });
 }

@@ -11,7 +11,9 @@ part 'game_state.g.dart';
 @freezed
 abstract class GameState with _$GameState {
   const factory GameState({
-    required GamePhase phase,
+    @GamePhaseConverter() required GamePhase phase,
+    @Default(0) int currentMoveIndex,
+    String? currentMoveId,
     required List<Player> players,
     required GameConfig config,
     @Default(false) bool isPaused,

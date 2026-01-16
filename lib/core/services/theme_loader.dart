@@ -35,32 +35,48 @@ class ThemeLoader {
     final eventsMap = audio?['events'] as YamlMap? ?? {};
     final eventAudio = <String, List<AudioVariant>>{};
     
+    final assetsPath = basePath.isEmpty ? '' : '$basePath/assets/';
+
     eventsMap.forEach((key, value) {
       final k = key as String;
       if (value is YamlList) {
         // List of variants
         eventAudio[k] = value.map((item) {
           if (item is YamlMap) {
+            String filePath = item['file']?.toString() ?? '';
+            if (filePath.isNotEmpty && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+              filePath = assetsPath + filePath;
+            }
             return AudioVariant(
-              file: item['file']?.toString() ?? '',
+              file: filePath,
               text: item['text']?.toString(),
             );
           }
-          return AudioVariant(file: item?.toString() ?? '');
+          String filePath = item?.toString() ?? '';
+          if (filePath.isNotEmpty && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+            filePath = assetsPath + filePath;
+          }
+          return AudioVariant(file: filePath);
         }).where((v) => v.file.isNotEmpty).toList();
       } else if (value is YamlMap) {
          // Handle nested maps like "countdown" -> {ten: "...", nine: "..."}
-         // Spec: countdown: {ten: "path"}
-         // Flatten them to countdown_ten: ["path"]
           value.forEach((subKey, subVal) {
            AudioVariant variant;
            if (subVal is YamlMap) {
+             String filePath = subVal['file']?.toString() ?? '';
+             if (filePath.isNotEmpty && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+                filePath = assetsPath + filePath;
+             }
              variant = AudioVariant(
-               file: subVal['file']?.toString() ?? '',
+               file: filePath,
                text: subVal['text']?.toString(),
              );
            } else {
-             variant = AudioVariant(file: subVal?.toString() ?? '');
+             String filePath = subVal?.toString() ?? '';
+             if (filePath.isNotEmpty && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+                filePath = assetsPath + filePath;
+             }
+             variant = AudioVariant(file: filePath);
            }
            
            if (variant.file.isNotEmpty) {
@@ -70,22 +86,28 @@ class ThemeLoader {
       }
     });
 
-    // Background: yaml['audio']['background'][key] -> List<Map> -> String (first filename)
+    // 3. Background: yaml['audio']['background'][key] -> List<Map> -> String (first filename)
     final bgMap = audio?['background'] as YamlMap? ?? {};
     final backgroundAudio = <String, String>{};
     
     bgMap.forEach((key, value) {
       final k = key as String;
+      String filePath = '';
       if (value is YamlList && value.isNotEmpty) {
         final firstItem = value.first;
          if (firstItem is YamlMap) {
-            backgroundAudio[k] = firstItem['file']?.toString() ?? '';
+            filePath = firstItem['file']?.toString() ?? '';
          } else {
-            backgroundAudio[k] = firstItem?.toString() ?? '';
+            filePath = firstItem?.toString() ?? '';
          }
       } else if (value is String) {
-        backgroundAudio[k] = value;
+        filePath = value;
       }
+
+      if (filePath.isNotEmpty && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+        filePath = assetsPath + filePath;
+      }
+      backgroundAudio[k] = filePath;
     });
 
     // Mixing

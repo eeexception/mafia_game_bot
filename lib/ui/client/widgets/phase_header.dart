@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/game_state.dart';
 import '../../../core/models/player.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Header widget for the Client PWA showing player info and game status.
 class PhaseHeader extends StatelessWidget {
@@ -15,6 +16,7 @@ class PhaseHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Row(
@@ -35,7 +37,7 @@ class PhaseHeader extends StatelessWidget {
           Column(
             children: [
               Text(
-                state.phase.name.toUpperCase().replaceAll('_', ' '),
+                _getPhaseName(state, l10n).toUpperCase(),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold, 
                   letterSpacing: 2, 
@@ -60,5 +62,28 @@ class PhaseHeader extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getPhaseName(GameState state, AppLocalizations l10n) {
+    final key = state.currentMoveId ?? state.phase.id;
+    switch (key) {
+      case 'lobby': return l10n.phaseLobby;
+      case 'setup': return l10n.phaseSetup;
+      case 'roleReveal': return l10n.phaseRoleReveal;
+      case 'night_start': return l10n.phaseNightStart;
+      case 'night_mafia': return l10n.phaseNightMafia;
+      case 'night_prostitute': return l10n.phaseNightProstitute;
+      case 'night_maniac': return l10n.phaseNightManiac;
+      case 'night_doctor': return l10n.phaseNightDoctor;
+      case 'night_poisoner': return l10n.phaseNightPoisoner;
+      case 'night_commissar': return l10n.phaseNightCommissar;
+      case 'morning': return l10n.phaseMorning;
+      case 'day_discussion': return l10n.phaseDayDiscussion;
+      case 'day_voting': return l10n.phaseDayVoting;
+      case 'day_defense': return l10n.phaseDayDefense;
+      case 'day_verdict': return l10n.phaseDayVerdict;
+      case 'gameOver': return l10n.phaseGameOver;
+      default: return key;
+    }
   }
 }

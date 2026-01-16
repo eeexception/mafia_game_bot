@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GameState {
 
- GamePhase get phase; List<Player> get players; GameConfig get config; bool get isPaused; int? get timerSecondsRemaining; int? get currentNightNumber; int? get currentDayNumber; Map<String, String>? get currentVotes;// performerId -> targetId
+@GamePhaseConverter() GamePhase get phase; int get currentMoveIndex; String? get currentMoveId; List<Player> get players; GameConfig get config; bool get isPaused; int? get timerSecondsRemaining; int? get currentNightNumber; int? get currentDayNumber; Map<String, String>? get currentVotes;// performerId -> targetId
  Map<String, bool>? get currentVerdicts;// performerId -> isExecute (true=execute, false=pardon)
  String? get verdictTargetId; List<String> get defenseQueue; String? get speakerId; String? get lastDoctorTargetId; List<PlayerAction> get pendingActions; List<String> get publicEventLog; List<String> get detailedLog; String? get sessionId; String? get statusMessage;
 /// Create a copy of GameState
@@ -30,16 +30,16 @@ $GameStateCopyWith<GameState> get copyWith => _$GameStateCopyWithImpl<GameState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameState&&(identical(other.phase, phase) || other.phase == phase)&&const DeepCollectionEquality().equals(other.players, players)&&(identical(other.config, config) || other.config == config)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.timerSecondsRemaining, timerSecondsRemaining) || other.timerSecondsRemaining == timerSecondsRemaining)&&(identical(other.currentNightNumber, currentNightNumber) || other.currentNightNumber == currentNightNumber)&&(identical(other.currentDayNumber, currentDayNumber) || other.currentDayNumber == currentDayNumber)&&const DeepCollectionEquality().equals(other.currentVotes, currentVotes)&&const DeepCollectionEquality().equals(other.currentVerdicts, currentVerdicts)&&(identical(other.verdictTargetId, verdictTargetId) || other.verdictTargetId == verdictTargetId)&&const DeepCollectionEquality().equals(other.defenseQueue, defenseQueue)&&(identical(other.speakerId, speakerId) || other.speakerId == speakerId)&&(identical(other.lastDoctorTargetId, lastDoctorTargetId) || other.lastDoctorTargetId == lastDoctorTargetId)&&const DeepCollectionEquality().equals(other.pendingActions, pendingActions)&&const DeepCollectionEquality().equals(other.publicEventLog, publicEventLog)&&const DeepCollectionEquality().equals(other.detailedLog, detailedLog)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.statusMessage, statusMessage) || other.statusMessage == statusMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GameState&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.currentMoveIndex, currentMoveIndex) || other.currentMoveIndex == currentMoveIndex)&&(identical(other.currentMoveId, currentMoveId) || other.currentMoveId == currentMoveId)&&const DeepCollectionEquality().equals(other.players, players)&&(identical(other.config, config) || other.config == config)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.timerSecondsRemaining, timerSecondsRemaining) || other.timerSecondsRemaining == timerSecondsRemaining)&&(identical(other.currentNightNumber, currentNightNumber) || other.currentNightNumber == currentNightNumber)&&(identical(other.currentDayNumber, currentDayNumber) || other.currentDayNumber == currentDayNumber)&&const DeepCollectionEquality().equals(other.currentVotes, currentVotes)&&const DeepCollectionEquality().equals(other.currentVerdicts, currentVerdicts)&&(identical(other.verdictTargetId, verdictTargetId) || other.verdictTargetId == verdictTargetId)&&const DeepCollectionEquality().equals(other.defenseQueue, defenseQueue)&&(identical(other.speakerId, speakerId) || other.speakerId == speakerId)&&(identical(other.lastDoctorTargetId, lastDoctorTargetId) || other.lastDoctorTargetId == lastDoctorTargetId)&&const DeepCollectionEquality().equals(other.pendingActions, pendingActions)&&const DeepCollectionEquality().equals(other.publicEventLog, publicEventLog)&&const DeepCollectionEquality().equals(other.detailedLog, detailedLog)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.statusMessage, statusMessage) || other.statusMessage == statusMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,phase,const DeepCollectionEquality().hash(players),config,isPaused,timerSecondsRemaining,currentNightNumber,currentDayNumber,const DeepCollectionEquality().hash(currentVotes),const DeepCollectionEquality().hash(currentVerdicts),verdictTargetId,const DeepCollectionEquality().hash(defenseQueue),speakerId,lastDoctorTargetId,const DeepCollectionEquality().hash(pendingActions),const DeepCollectionEquality().hash(publicEventLog),const DeepCollectionEquality().hash(detailedLog),sessionId,statusMessage);
+int get hashCode => Object.hashAll([runtimeType,phase,currentMoveIndex,currentMoveId,const DeepCollectionEquality().hash(players),config,isPaused,timerSecondsRemaining,currentNightNumber,currentDayNumber,const DeepCollectionEquality().hash(currentVotes),const DeepCollectionEquality().hash(currentVerdicts),verdictTargetId,const DeepCollectionEquality().hash(defenseQueue),speakerId,lastDoctorTargetId,const DeepCollectionEquality().hash(pendingActions),const DeepCollectionEquality().hash(publicEventLog),const DeepCollectionEquality().hash(detailedLog),sessionId,statusMessage]);
 
 @override
 String toString() {
-  return 'GameState(phase: $phase, players: $players, config: $config, isPaused: $isPaused, timerSecondsRemaining: $timerSecondsRemaining, currentNightNumber: $currentNightNumber, currentDayNumber: $currentDayNumber, currentVotes: $currentVotes, currentVerdicts: $currentVerdicts, verdictTargetId: $verdictTargetId, defenseQueue: $defenseQueue, speakerId: $speakerId, lastDoctorTargetId: $lastDoctorTargetId, pendingActions: $pendingActions, publicEventLog: $publicEventLog, detailedLog: $detailedLog, sessionId: $sessionId, statusMessage: $statusMessage)';
+  return 'GameState(phase: $phase, currentMoveIndex: $currentMoveIndex, currentMoveId: $currentMoveId, players: $players, config: $config, isPaused: $isPaused, timerSecondsRemaining: $timerSecondsRemaining, currentNightNumber: $currentNightNumber, currentDayNumber: $currentDayNumber, currentVotes: $currentVotes, currentVerdicts: $currentVerdicts, verdictTargetId: $verdictTargetId, defenseQueue: $defenseQueue, speakerId: $speakerId, lastDoctorTargetId: $lastDoctorTargetId, pendingActions: $pendingActions, publicEventLog: $publicEventLog, detailedLog: $detailedLog, sessionId: $sessionId, statusMessage: $statusMessage)';
 }
 
 
@@ -50,7 +50,7 @@ abstract mixin class $GameStateCopyWith<$Res>  {
   factory $GameStateCopyWith(GameState value, $Res Function(GameState) _then) = _$GameStateCopyWithImpl;
 @useResult
 $Res call({
- GamePhase phase, List<Player> players, GameConfig config, bool isPaused, int? timerSecondsRemaining, int? currentNightNumber, int? currentDayNumber, Map<String, String>? currentVotes, Map<String, bool>? currentVerdicts, String? verdictTargetId, List<String> defenseQueue, String? speakerId, String? lastDoctorTargetId, List<PlayerAction> pendingActions, List<String> publicEventLog, List<String> detailedLog, String? sessionId, String? statusMessage
+@GamePhaseConverter() GamePhase phase, int currentMoveIndex, String? currentMoveId, List<Player> players, GameConfig config, bool isPaused, int? timerSecondsRemaining, int? currentNightNumber, int? currentDayNumber, Map<String, String>? currentVotes, Map<String, bool>? currentVerdicts, String? verdictTargetId, List<String> defenseQueue, String? speakerId, String? lastDoctorTargetId, List<PlayerAction> pendingActions, List<String> publicEventLog, List<String> detailedLog, String? sessionId, String? statusMessage
 });
 
 
@@ -67,10 +67,12 @@ class _$GameStateCopyWithImpl<$Res>
 
 /// Create a copy of GameState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? phase = null,Object? players = null,Object? config = null,Object? isPaused = null,Object? timerSecondsRemaining = freezed,Object? currentNightNumber = freezed,Object? currentDayNumber = freezed,Object? currentVotes = freezed,Object? currentVerdicts = freezed,Object? verdictTargetId = freezed,Object? defenseQueue = null,Object? speakerId = freezed,Object? lastDoctorTargetId = freezed,Object? pendingActions = null,Object? publicEventLog = null,Object? detailedLog = null,Object? sessionId = freezed,Object? statusMessage = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? phase = null,Object? currentMoveIndex = null,Object? currentMoveId = freezed,Object? players = null,Object? config = null,Object? isPaused = null,Object? timerSecondsRemaining = freezed,Object? currentNightNumber = freezed,Object? currentDayNumber = freezed,Object? currentVotes = freezed,Object? currentVerdicts = freezed,Object? verdictTargetId = freezed,Object? defenseQueue = null,Object? speakerId = freezed,Object? lastDoctorTargetId = freezed,Object? pendingActions = null,Object? publicEventLog = null,Object? detailedLog = null,Object? sessionId = freezed,Object? statusMessage = freezed,}) {
   return _then(_self.copyWith(
 phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
-as GamePhase,players: null == players ? _self.players : players // ignore: cast_nullable_to_non_nullable
+as GamePhase,currentMoveIndex: null == currentMoveIndex ? _self.currentMoveIndex : currentMoveIndex // ignore: cast_nullable_to_non_nullable
+as int,currentMoveId: freezed == currentMoveId ? _self.currentMoveId : currentMoveId // ignore: cast_nullable_to_non_nullable
+as String?,players: null == players ? _self.players : players // ignore: cast_nullable_to_non_nullable
 as List<Player>,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
 as GameConfig,isPaused: null == isPaused ? _self.isPaused : isPaused // ignore: cast_nullable_to_non_nullable
 as bool,timerSecondsRemaining: freezed == timerSecondsRemaining ? _self.timerSecondsRemaining : timerSecondsRemaining // ignore: cast_nullable_to_non_nullable
@@ -181,10 +183,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( GamePhase phase,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@GamePhaseConverter()  GamePhase phase,  int currentMoveIndex,  String? currentMoveId,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GameState() when $default != null:
-return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
+return $default(_that.phase,_that.currentMoveIndex,_that.currentMoveId,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
   return orElse();
 
 }
@@ -202,10 +204,10 @@ return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.time
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( GamePhase phase,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@GamePhaseConverter()  GamePhase phase,  int currentMoveIndex,  String? currentMoveId,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)  $default,) {final _that = this;
 switch (_that) {
 case _GameState():
-return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
+return $default(_that.phase,_that.currentMoveIndex,_that.currentMoveId,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -222,10 +224,10 @@ return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.time
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( GamePhase phase,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@GamePhaseConverter()  GamePhase phase,  int currentMoveIndex,  String? currentMoveId,  List<Player> players,  GameConfig config,  bool isPaused,  int? timerSecondsRemaining,  int? currentNightNumber,  int? currentDayNumber,  Map<String, String>? currentVotes,  Map<String, bool>? currentVerdicts,  String? verdictTargetId,  List<String> defenseQueue,  String? speakerId,  String? lastDoctorTargetId,  List<PlayerAction> pendingActions,  List<String> publicEventLog,  List<String> detailedLog,  String? sessionId,  String? statusMessage)?  $default,) {final _that = this;
 switch (_that) {
 case _GameState() when $default != null:
-return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
+return $default(_that.phase,_that.currentMoveIndex,_that.currentMoveId,_that.players,_that.config,_that.isPaused,_that.timerSecondsRemaining,_that.currentNightNumber,_that.currentDayNumber,_that.currentVotes,_that.currentVerdicts,_that.verdictTargetId,_that.defenseQueue,_that.speakerId,_that.lastDoctorTargetId,_that.pendingActions,_that.publicEventLog,_that.detailedLog,_that.sessionId,_that.statusMessage);case _:
   return null;
 
 }
@@ -237,10 +239,12 @@ return $default(_that.phase,_that.players,_that.config,_that.isPaused,_that.time
 @JsonSerializable()
 
 class _GameState implements GameState {
-  const _GameState({required this.phase, required final  List<Player> players, required this.config, this.isPaused = false, this.timerSecondsRemaining, this.currentNightNumber, this.currentDayNumber, final  Map<String, String>? currentVotes, final  Map<String, bool>? currentVerdicts, this.verdictTargetId, final  List<String> defenseQueue = const [], this.speakerId, this.lastDoctorTargetId, final  List<PlayerAction> pendingActions = const [], final  List<String> publicEventLog = const [], final  List<String> detailedLog = const [], this.sessionId, this.statusMessage}): _players = players,_currentVotes = currentVotes,_currentVerdicts = currentVerdicts,_defenseQueue = defenseQueue,_pendingActions = pendingActions,_publicEventLog = publicEventLog,_detailedLog = detailedLog;
+  const _GameState({@GamePhaseConverter() required this.phase, this.currentMoveIndex = 0, this.currentMoveId, required final  List<Player> players, required this.config, this.isPaused = false, this.timerSecondsRemaining, this.currentNightNumber, this.currentDayNumber, final  Map<String, String>? currentVotes, final  Map<String, bool>? currentVerdicts, this.verdictTargetId, final  List<String> defenseQueue = const [], this.speakerId, this.lastDoctorTargetId, final  List<PlayerAction> pendingActions = const [], final  List<String> publicEventLog = const [], final  List<String> detailedLog = const [], this.sessionId, this.statusMessage}): _players = players,_currentVotes = currentVotes,_currentVerdicts = currentVerdicts,_defenseQueue = defenseQueue,_pendingActions = pendingActions,_publicEventLog = publicEventLog,_detailedLog = detailedLog;
   factory _GameState.fromJson(Map<String, dynamic> json) => _$GameStateFromJson(json);
 
-@override final  GamePhase phase;
+@override@GamePhaseConverter() final  GamePhase phase;
+@override@JsonKey() final  int currentMoveIndex;
+@override final  String? currentMoveId;
  final  List<Player> _players;
 @override List<Player> get players {
   if (_players is EqualUnmodifiableListView) return _players;
@@ -321,16 +325,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameState&&(identical(other.phase, phase) || other.phase == phase)&&const DeepCollectionEquality().equals(other._players, _players)&&(identical(other.config, config) || other.config == config)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.timerSecondsRemaining, timerSecondsRemaining) || other.timerSecondsRemaining == timerSecondsRemaining)&&(identical(other.currentNightNumber, currentNightNumber) || other.currentNightNumber == currentNightNumber)&&(identical(other.currentDayNumber, currentDayNumber) || other.currentDayNumber == currentDayNumber)&&const DeepCollectionEquality().equals(other._currentVotes, _currentVotes)&&const DeepCollectionEquality().equals(other._currentVerdicts, _currentVerdicts)&&(identical(other.verdictTargetId, verdictTargetId) || other.verdictTargetId == verdictTargetId)&&const DeepCollectionEquality().equals(other._defenseQueue, _defenseQueue)&&(identical(other.speakerId, speakerId) || other.speakerId == speakerId)&&(identical(other.lastDoctorTargetId, lastDoctorTargetId) || other.lastDoctorTargetId == lastDoctorTargetId)&&const DeepCollectionEquality().equals(other._pendingActions, _pendingActions)&&const DeepCollectionEquality().equals(other._publicEventLog, _publicEventLog)&&const DeepCollectionEquality().equals(other._detailedLog, _detailedLog)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.statusMessage, statusMessage) || other.statusMessage == statusMessage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GameState&&(identical(other.phase, phase) || other.phase == phase)&&(identical(other.currentMoveIndex, currentMoveIndex) || other.currentMoveIndex == currentMoveIndex)&&(identical(other.currentMoveId, currentMoveId) || other.currentMoveId == currentMoveId)&&const DeepCollectionEquality().equals(other._players, _players)&&(identical(other.config, config) || other.config == config)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.timerSecondsRemaining, timerSecondsRemaining) || other.timerSecondsRemaining == timerSecondsRemaining)&&(identical(other.currentNightNumber, currentNightNumber) || other.currentNightNumber == currentNightNumber)&&(identical(other.currentDayNumber, currentDayNumber) || other.currentDayNumber == currentDayNumber)&&const DeepCollectionEquality().equals(other._currentVotes, _currentVotes)&&const DeepCollectionEquality().equals(other._currentVerdicts, _currentVerdicts)&&(identical(other.verdictTargetId, verdictTargetId) || other.verdictTargetId == verdictTargetId)&&const DeepCollectionEquality().equals(other._defenseQueue, _defenseQueue)&&(identical(other.speakerId, speakerId) || other.speakerId == speakerId)&&(identical(other.lastDoctorTargetId, lastDoctorTargetId) || other.lastDoctorTargetId == lastDoctorTargetId)&&const DeepCollectionEquality().equals(other._pendingActions, _pendingActions)&&const DeepCollectionEquality().equals(other._publicEventLog, _publicEventLog)&&const DeepCollectionEquality().equals(other._detailedLog, _detailedLog)&&(identical(other.sessionId, sessionId) || other.sessionId == sessionId)&&(identical(other.statusMessage, statusMessage) || other.statusMessage == statusMessage));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,phase,const DeepCollectionEquality().hash(_players),config,isPaused,timerSecondsRemaining,currentNightNumber,currentDayNumber,const DeepCollectionEquality().hash(_currentVotes),const DeepCollectionEquality().hash(_currentVerdicts),verdictTargetId,const DeepCollectionEquality().hash(_defenseQueue),speakerId,lastDoctorTargetId,const DeepCollectionEquality().hash(_pendingActions),const DeepCollectionEquality().hash(_publicEventLog),const DeepCollectionEquality().hash(_detailedLog),sessionId,statusMessage);
+int get hashCode => Object.hashAll([runtimeType,phase,currentMoveIndex,currentMoveId,const DeepCollectionEquality().hash(_players),config,isPaused,timerSecondsRemaining,currentNightNumber,currentDayNumber,const DeepCollectionEquality().hash(_currentVotes),const DeepCollectionEquality().hash(_currentVerdicts),verdictTargetId,const DeepCollectionEquality().hash(_defenseQueue),speakerId,lastDoctorTargetId,const DeepCollectionEquality().hash(_pendingActions),const DeepCollectionEquality().hash(_publicEventLog),const DeepCollectionEquality().hash(_detailedLog),sessionId,statusMessage]);
 
 @override
 String toString() {
-  return 'GameState(phase: $phase, players: $players, config: $config, isPaused: $isPaused, timerSecondsRemaining: $timerSecondsRemaining, currentNightNumber: $currentNightNumber, currentDayNumber: $currentDayNumber, currentVotes: $currentVotes, currentVerdicts: $currentVerdicts, verdictTargetId: $verdictTargetId, defenseQueue: $defenseQueue, speakerId: $speakerId, lastDoctorTargetId: $lastDoctorTargetId, pendingActions: $pendingActions, publicEventLog: $publicEventLog, detailedLog: $detailedLog, sessionId: $sessionId, statusMessage: $statusMessage)';
+  return 'GameState(phase: $phase, currentMoveIndex: $currentMoveIndex, currentMoveId: $currentMoveId, players: $players, config: $config, isPaused: $isPaused, timerSecondsRemaining: $timerSecondsRemaining, currentNightNumber: $currentNightNumber, currentDayNumber: $currentDayNumber, currentVotes: $currentVotes, currentVerdicts: $currentVerdicts, verdictTargetId: $verdictTargetId, defenseQueue: $defenseQueue, speakerId: $speakerId, lastDoctorTargetId: $lastDoctorTargetId, pendingActions: $pendingActions, publicEventLog: $publicEventLog, detailedLog: $detailedLog, sessionId: $sessionId, statusMessage: $statusMessage)';
 }
 
 
@@ -341,7 +345,7 @@ abstract mixin class _$GameStateCopyWith<$Res> implements $GameStateCopyWith<$Re
   factory _$GameStateCopyWith(_GameState value, $Res Function(_GameState) _then) = __$GameStateCopyWithImpl;
 @override @useResult
 $Res call({
- GamePhase phase, List<Player> players, GameConfig config, bool isPaused, int? timerSecondsRemaining, int? currentNightNumber, int? currentDayNumber, Map<String, String>? currentVotes, Map<String, bool>? currentVerdicts, String? verdictTargetId, List<String> defenseQueue, String? speakerId, String? lastDoctorTargetId, List<PlayerAction> pendingActions, List<String> publicEventLog, List<String> detailedLog, String? sessionId, String? statusMessage
+@GamePhaseConverter() GamePhase phase, int currentMoveIndex, String? currentMoveId, List<Player> players, GameConfig config, bool isPaused, int? timerSecondsRemaining, int? currentNightNumber, int? currentDayNumber, Map<String, String>? currentVotes, Map<String, bool>? currentVerdicts, String? verdictTargetId, List<String> defenseQueue, String? speakerId, String? lastDoctorTargetId, List<PlayerAction> pendingActions, List<String> publicEventLog, List<String> detailedLog, String? sessionId, String? statusMessage
 });
 
 
@@ -358,10 +362,12 @@ class __$GameStateCopyWithImpl<$Res>
 
 /// Create a copy of GameState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? phase = null,Object? players = null,Object? config = null,Object? isPaused = null,Object? timerSecondsRemaining = freezed,Object? currentNightNumber = freezed,Object? currentDayNumber = freezed,Object? currentVotes = freezed,Object? currentVerdicts = freezed,Object? verdictTargetId = freezed,Object? defenseQueue = null,Object? speakerId = freezed,Object? lastDoctorTargetId = freezed,Object? pendingActions = null,Object? publicEventLog = null,Object? detailedLog = null,Object? sessionId = freezed,Object? statusMessage = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? phase = null,Object? currentMoveIndex = null,Object? currentMoveId = freezed,Object? players = null,Object? config = null,Object? isPaused = null,Object? timerSecondsRemaining = freezed,Object? currentNightNumber = freezed,Object? currentDayNumber = freezed,Object? currentVotes = freezed,Object? currentVerdicts = freezed,Object? verdictTargetId = freezed,Object? defenseQueue = null,Object? speakerId = freezed,Object? lastDoctorTargetId = freezed,Object? pendingActions = null,Object? publicEventLog = null,Object? detailedLog = null,Object? sessionId = freezed,Object? statusMessage = freezed,}) {
   return _then(_GameState(
 phase: null == phase ? _self.phase : phase // ignore: cast_nullable_to_non_nullable
-as GamePhase,players: null == players ? _self._players : players // ignore: cast_nullable_to_non_nullable
+as GamePhase,currentMoveIndex: null == currentMoveIndex ? _self.currentMoveIndex : currentMoveIndex // ignore: cast_nullable_to_non_nullable
+as int,currentMoveId: freezed == currentMoveId ? _self.currentMoveId : currentMoveId // ignore: cast_nullable_to_non_nullable
+as String?,players: null == players ? _self._players : players // ignore: cast_nullable_to_non_nullable
 as List<Player>,config: null == config ? _self.config : config // ignore: cast_nullable_to_non_nullable
 as GameConfig,isPaused: null == isPaused ? _self.isPaused : isPaused // ignore: cast_nullable_to_non_nullable
 as bool,timerSecondsRemaining: freezed == timerSecondsRemaining ? _self.timerSecondsRemaining : timerSecondsRemaining // ignore: cast_nullable_to_non_nullable

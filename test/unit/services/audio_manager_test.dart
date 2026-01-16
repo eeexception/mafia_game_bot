@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mafia_game/core/services/audio_manager.dart';
 import 'package:mockito/mockito.dart';
@@ -20,6 +21,15 @@ void main() {
         backgroundPlayer: mockBackgroundPlayer,
         announcementPlayer: mockAnnouncementPlayer,
       );
+      
+      // Create a dummy file for existence check
+      File('test.mp3').createSync();
+    });
+
+    tearDown(() {
+      if (File('test.mp3').existsSync()) {
+        File('test.mp3').deleteSync();
+      }
     });
 
     test('playBackground calls play on background player', () async {

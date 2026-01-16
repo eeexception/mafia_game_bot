@@ -88,7 +88,12 @@ void main() {
         Player(id: 'p2', number: 2, nickname: 'P2', role: const CivilianRole(), isAlive: false), // Dead civ
       ];
       
-      stateNotifier.updateState(GameState(players: players, phase: GamePhase.dayVerdict, config: const GameConfig(themeId: 'default')));
+      stateNotifier.updateState(GameState(
+        players: players, 
+        phase: GamePhase.day, 
+        currentMoveId: 'day_verdict',
+        config: const GameConfig(themeId: 'default')
+      ));
 
       // Mock WinDetector to return Mafia Win
       when(mockWin.checkWinCondition(any)).thenReturn(const WinResult(faction: Faction.mafia, message: 'Mafia Wins'));
@@ -110,7 +115,8 @@ void main() {
       
       stateNotifier.updateState(GameState(
         players: players, 
-        phase: GamePhase.morning, // Logic runs just before morning but check is in resolveNightActions
+        phase: GamePhase.day, 
+        currentMoveId: 'morning',
         config: const GameConfig(themeId: 'default'),
         pendingActions: [], // No actions!
       ));

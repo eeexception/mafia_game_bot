@@ -7,7 +7,9 @@ part of 'game_state.dart';
 // **************************************************************************
 
 _GameState _$GameStateFromJson(Map<String, dynamic> json) => _GameState(
-  phase: $enumDecode(_$GamePhaseEnumMap, json['phase']),
+  phase: const GamePhaseConverter().fromJson(json['phase'] as String),
+  currentMoveIndex: (json['currentMoveIndex'] as num?)?.toInt() ?? 0,
+  currentMoveId: json['currentMoveId'] as String?,
   players: (json['players'] as List<dynamic>)
       .map((e) => Player.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -51,7 +53,9 @@ _GameState _$GameStateFromJson(Map<String, dynamic> json) => _GameState(
 
 Map<String, dynamic> _$GameStateToJson(_GameState instance) =>
     <String, dynamic>{
-      'phase': _$GamePhaseEnumMap[instance.phase]!,
+      'phase': const GamePhaseConverter().toJson(instance.phase),
+      'currentMoveIndex': instance.currentMoveIndex,
+      'currentMoveId': instance.currentMoveId,
       'players': instance.players,
       'config': instance.config,
       'isPaused': instance.isPaused,
@@ -70,21 +74,3 @@ Map<String, dynamic> _$GameStateToJson(_GameState instance) =>
       'sessionId': instance.sessionId,
       'statusMessage': instance.statusMessage,
     };
-
-const _$GamePhaseEnumMap = {
-  GamePhase.lobby: 'lobby',
-  GamePhase.setup: 'setup',
-  GamePhase.roleReveal: 'roleReveal',
-  GamePhase.nightMafia: 'nightMafia',
-  GamePhase.nightProstitute: 'nightProstitute',
-  GamePhase.nightManiac: 'nightManiac',
-  GamePhase.nightDoctor: 'nightDoctor',
-  GamePhase.nightPoisoner: 'nightPoisoner',
-  GamePhase.nightCommissar: 'nightCommissar',
-  GamePhase.morning: 'morning',
-  GamePhase.dayDiscussion: 'dayDiscussion',
-  GamePhase.dayVoting: 'dayVoting',
-  GamePhase.dayDefense: 'dayDefense',
-  GamePhase.dayVerdict: 'dayVerdict',
-  GamePhase.gameOver: 'gameOver',
-};

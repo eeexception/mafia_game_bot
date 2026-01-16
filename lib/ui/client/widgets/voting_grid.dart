@@ -46,7 +46,7 @@ class VotingGrid extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: InkWell(
-                  onTap: () => onTargetSelected(p.id),
+                  onTap: me.hasActed ? null : () => onTargetSelected(p.id),
                   child: Container(
                     width: 100,
                     decoration: BoxDecoration(
